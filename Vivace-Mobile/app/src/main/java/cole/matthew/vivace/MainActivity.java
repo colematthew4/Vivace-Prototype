@@ -1,7 +1,7 @@
 package cole.matthew.vivace;
 
 import android.Manifest;
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioFormat;
@@ -18,8 +18,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.ValueCallback;
 import android.webkit.WebView;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -33,140 +33,177 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, TempoPickerFragment.NoticeTempoDialogListener, TimeSignPickerFragment.NoticeTimeSignDialogListener
 {
     public static final String APPLICATION_TAG = "Vivace_Tag";
-    private AudioRecord _recorder;
     private ImageButton _recordButton;
-    private TextView _noteTextView;
+    private TextView _timerTextView;
+    private TextView _tempoTextView;
+    private TextView _timeSignatureTextView;
     private WebView _scoreUI;
     public static volatile boolean IsRecording;
+    private String _timeSignature;
+    private int _bpm;
+    private long startTime = 0;
+//    private Handler timerHandler = new Handler();
+//    private Runnable timerRunnable = new Runnable()
+//    {
+//        /**
+//         * <p>This provides the functionality of Vivace's recording timer.</p><br/>
+//         * {@inheritDoc}
+//         */
+//        @SuppressLint("DefaultLocale")
+//        @Override
+//        public void run()
+//        {
+//            long millis = System.currentTimeMillis() - startTime;
+//            int seconds = (int)(millis / 1000) % 60;
+//            int minutes = seconds / 60;
+//            _timerTextView.setText(String.format("%02d:%02d", minutes, seconds));
+//
+//            timerHandler.postDelayed(this, 500);
+//        }
+//    };
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        RequestAllPermissions();
 
         Toolbar toolbar = findViewById(R.id.app_bar);
         setSupportActionBar(toolbar);
 
-        _scoreUI = findViewById(R.id.scoreUI);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED)
+        _tempoTextView = findViewById(R.id.tempo);
+        _tempoTextView.setText("120 BPM");
+        _tempoTextView.setOnClickListener(new View.OnClickListener()
         {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.INTERNET))
-            {
-                Snackbar.make(findViewById(R.id.scoreUI), R.string.internet_permissions_explanation, Snackbar.LENGTH_LONG).show();
-            }
-            else
-            {
-                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.INTERNET }, 15800);
-            }
-        }
-        else if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED)
-        {
-            Log.d(APPLICATION_TAG, "Internet permission granted.");
-        }
-
-        _scoreUI.getSettings().setJavaScriptEnabled(true);
-        _scoreUI.loadData(                                       //https://npmcdn.com/vexflow@1.2.84/releases/vexflow-debug.js
-                "<html><script type=\"text/javascript\" src=\"https://unpkg.com/vexflow/releases/vexflow-min.js\"></script><body><div id=\"start\"></div></body></html>",
-                "text/html", null);
-        _scoreUI.evaluateJavascript("VF = Vex.Flow;\n" + "\n" +
-                                    "// Create an SVG renderer and attach it to the DIV element named \"start\".\n" +
-                                    "var div = document.getElementById(\"start\")\n" +
-                                    "var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);\n" +
-                                    "\n" + "// Configure the rendering context.\n" +
-                                    "renderer.resize(500, 500);\n" +
-                                    "var context = renderer.getContext();\n" +
-                                    "context.setFont(\"Arial\", 10, \"\").setBackgroundFillStyle(\"#eed\");\n" +
-                                    "\n" +
-                                    "// Create a stave of width 400 at position 10, 40 on the canvas.\n" +
-                                    "var stave = new VF.Stave(10, 40, 400);\n" + "\n" +
-                                    "// Add a clef and time signature.\n" +
-                                    "stave.addClef(\"treble\").addTimeSignature(\"4/4\");\n" +
-                                    "\n" + "// Connect it to the rendering context and draw!\n" +
-                                    "stave.setContext(context).draw();", new ValueCallback<String>()
-        {
+            /** {@inheritDoc} */
             @Override
-            public void onReceiveValue(String value)
+            public void onClick(View v)
             {
-                Log.d(APPLICATION_TAG, value);
+                Bundle arguments = new Bundle();
+                arguments.putInt("TempoValue", _bpm);
+                TempoPickerFragment tempoPickerFragment = new TempoPickerFragment();
+                tempoPickerFragment.setArguments(arguments);
+                tempoPickerFragment.show(getFragmentManager(), "TempoPicker");
             }
         });
 
-        _noteTextView = findViewById(R.id.note_name);
+//        Spinner _timeSignature = findViewById(R.id.timeSignSelector);
+//        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.timeSignatures, android.R.layout.simple_spinner_item);
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        _timeSignature.setAdapter(adapter);
+//        _timeSignature.setOnItemSelectedListener(this);
+        _timeSignatureTextView = findViewById(R.id.timeSignSelector);
+        _timeSignatureTextView.setText("4/4");
+        _timeSignatureTextView.setOnClickListener(new View.OnClickListener()
+        {
+            /** {@inheritDoc} */
+            @Override
+            public void onClick(View v)
+            {
+                Bundle arguments = new Bundle();
+                arguments.putString("TimeSignValue", _timeSignature);
+                TimeSignPickerFragment timeSignPickerFragment = new TimeSignPickerFragment();
+                timeSignPickerFragment.setArguments(arguments);
+                timeSignPickerFragment.show(getFragmentManager(), "TempoPicker");
+            }
+        });
+
+        _scoreUI = findViewById(R.id.scoreUI);
+
+        if (BuildConfig.DEBUG)
+            WebView.setWebContentsDebuggingEnabled(true);
+
+        _scoreUI.getSettings().setJavaScriptEnabled(true);
+        String html = "<html>" + "<head>" +
+                      "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">" +
+                      "<meta name=\"robots\" content=\"noindex, nofollow\">" +
+                      "<meta name=\"googlebot\" content=\"noindex, nofollow\">" +
+                      "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" +
+                      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/css/result-light.css\">" +
+                      "<script type=\"text/javascript\" src=\"https://npmcdn.com/vexflow/releases/vexflow-debug.js\"></script>" +
+                      "<style type=\"text/css\"></style>" + "<title>VexFlow Sandbox</title>" +
+                      "<script type=\"text/javascript\">var alreadyrunflag = 0; if (document.addEventListener) document.addEventListener(\"DOMContentLoaded\", function() { alreadyrunflag=1; }, false); else if (document.all && !window.opera) { document.write('<script type=\"text/javascript\" id=\"contentloadtag\" defer=\"defer\" src=\"javascript:void(0)\"><\\/script>'); var contentloadtag = document.getElementById(\"contentloadtag\"); contentloadtag.onreadystatechange=function() { if (this.readyState==\"complete\") { alreadyrunflag=1; } } } window.onload = function() { setTimeout(\"if (!alreadyrunflag){ }\", 0); }</script>" +
+                      "</head>" + "<body>" + "<div id=\"boo\"></div>" +
+                      "<script>if (window.parent && window.parent.parent) { window.parent.parent.postMessage([\"resultsFrame\", { height: document.body.getBoundingClientRect().height, slug: \"None\"}], \"*\")}</script>" +
+                      "</body>" + "</html>";
+        _scoreUI.loadData(html, "text/html", null);
+
+        _timerTextView = findViewById(R.id.recordingTimer);
         _recordButton = findViewById(R.id.recordButton);
         _recordButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                if (ContextCompat.checkSelfPermission(v.getContext(), Manifest.permission.RECORD_AUDIO) !=
-                    PackageManager.PERMISSION_GRANTED)
-                {
-                    if (ActivityCompat.shouldShowRequestPermissionRationale((Activity)v.getContext(), Manifest.permission.RECORD_AUDIO))
-                    {
-                        // Show an explanation to the user *asynchronously* -- don't block this thread
-                        // waiting for the user's response! After the user sees the explanation, try
-                        // again to request the permission.
-                    }
-                    else
-                    {
-                        // No explanation needed; request the permission
-                        ActivityCompat.requestPermissions((Activity)v.getContext(), new String[] { Manifest.permission.RECORD_AUDIO }, 3461);
-                    }
-                }
-                else
-                {
-                    // permission is already granted
-                    analyzeAudio();
-                }
-                //                if (_recorder == null)
-//                    _recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, AudioFormat.CHANNEL_IN_MONO,
-//                                                AudioFormat.ENCODING_PCM_8BIT, getMinBufferSize());
-//
-//                if (_recorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING)
-//                {
-//                    if (_recorder.getState() != AudioRecord.STATE_UNINITIALIZED)
-//                    {
-//                        Thread.currentThread().interrupt();
-//                    }
-//
-//                    _recorder.startRecording();
-//
-//                    Thread recordingThread = new Thread(new Runnable()
-//                    {
-//                        @Override
-//                        public void run()
-//                        {
-//                            Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
-//                            analyzeAudio();
-//                        }
-//                    }, "AudioRecorder Thread");
-//                    recordingThread.start();
-//                }
-//                else
-//                {
-//                    _recorder.stop();
-//                    _recorder.release();
-//                }
+//                String javaScript = "(function() { VF = Vex.Flow; var div = document.getElementById(\"boo\"); var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG); renderer.resize(500,500); var context = renderer.getContext(); context.setFont(\"Arial\", 10, \"\").setBackgroundFillStyle(\"#eed\"); var stave = new VF.Stave(10, 40, 40); stave.addClef(\"treble\").addTimeSignature(\"4/4\"); stave.setContext(context).draw(); return \"test\"; })();";
+                String javaScript = "const VF = Vex.Flow;" + "var vf = new VF.Factory({" +
+                                    "renderer: { elementId: 'boo', width: 500, height: 300 }" +
+                                    "});" + "var score = vf.EasyScore();" +
+                                    "var system = vf.System();" + "system.addStave({" +
+                                    "voices: [" +
+                                    "score.voice(score.notes('C#5/q, B4, A4, G#4', {stem: 'up'}))," +
+                                    "score.voice(score.notes('C#4/h, C#4', {stem: 'down'}))" + "]" +
+                                    "}).addClef('treble').addTimeSignature('4/4');" +
+                                    "system.addStave({" + "voices: [" +
+                                    "score.voice(score.notes('C4/q, B4, Eb5, G5'))" + "]" +
+                                    "}).addClef('treble').addTimeSignature('4/4');" + "vf.draw();";
+                _scoreUI.evaluateJavascript(javaScript, null);
+
+                analyzeAudio();
             }
         });
     }
 
-    /**
-     * {@inheritDoc}
-     */
+//    @Override
+//    protected void onPause()
+//    {
+//        super.onPause();
+//        timerHandler.removeCallbacks(timerRunnable);
+//    }
+
+    /** Requests all the permissions required by the application. */
+    public void RequestAllPermissions()
+    {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
+        {
+            // Show an explanation to the user *asynchronously* -- don't block this thread waiting
+            // for the user's response! After the user sees the explanation, try again to request
+            // the permission.
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO))
+                Snackbar.make(findViewById(R.id.scoreUI), R.string.audio_permissions_explanation, Snackbar.LENGTH_LONG).show();
+            else                // No explanation needed; request the permission
+                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.RECORD_AUDIO }, VivacePermissionCodes.RECORD_AUDIO);
+        }
+        else        // permission is already granted
+            Log.d(APPLICATION_TAG, "Audio Recording permission granted.");
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED)
+        {
+            // Show an explanation to the user *asynchronously* -- don't block this thread waiting
+            // for the user's response! After the user sees the explanation, try again to request
+            // the permission.
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.INTERNET))
+                Snackbar.make(findViewById(R.id.scoreUI), R.string.internet_permissions_explanation, Snackbar.LENGTH_LONG).show();
+            else                // No explanation needed; request the permission
+                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.INTERNET }, VivacePermissionCodes.INTERNET);
+        }
+        else        // else permission is already granted
+            Log.d(APPLICATION_TAG, "Internet permission granted.");
+    }
+
+    /** {@inheritDoc} */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults)
     {
         switch (requestCode)
         {
-            case 3461:
+            case VivacePermissionCodes.RECORD_AUDIO:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 {
                     // permission was granted
@@ -179,7 +216,7 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 break;
-            case 1580:
+            case VivacePermissionCodes.INTERNET:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 {
                     // permission granted
@@ -202,6 +239,8 @@ public class MainActivity extends AppCompatActivity
         if (!IsRecording)
         {
 //            _recordButton.setImageDrawable(getDrawable(R.drawable.ic_info_black_24dp));
+            startTime = System.currentTimeMillis();
+            //timerHandler.postDelayed(timerRunnable, 0);
 
             Thread thread = new Thread(new Runnable()
             {
@@ -210,9 +249,10 @@ public class MainActivity extends AppCompatActivity
                 private int format = AudioFormat.ENCODING_PCM_16BIT;
                 private int sampleSize = 44100;
                 //private int bufferSize = AudioRecord.getMinBufferSize(sampleSize, channel_config, format);
-                private int bufferSize = 1024;  // hardcode this so that can get power of 2
+                private int bufferSize = 32768;  // hardcode this so that can get power of 2
                 private AudioRecord audioInput = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleSize, channel_config, format, bufferSize);
 
+                /** {@inheritDoc} */
                 @Override
                 public void run()
                 {
@@ -226,7 +266,7 @@ public class MainActivity extends AppCompatActivity
 
                     while (MainActivity.IsRecording)
                     {
-                        bytesRecorded += audioInput.read(audioBuffer, 0, bufferSize);
+                        bytesRecorded += audioInput.read(audioBuffer, 0, 22050);
                         Log.i(TAG, "bytesRecorded: " + String.valueOf(bytesRecorded));
 
                         double[] buffer = new double[audioBuffer.length];
@@ -255,20 +295,37 @@ public class MainActivity extends AppCompatActivity
 
                         List<Float> found = DFT.process(results, sampleSize, resultC.length, 7);
                         HashMap<String, Float> keys = new HashMap<>();
+                        //if (!found.isEmpty())
+                        //keys.put(closestKey(found.get(0)), found.get(0));
                         for (float freq : found)
                             keys.put(closestKey(freq), freq);
 
-                        for (final String note : keys.keySet())
+                        if (keys.keySet().isEmpty())
                         {
-                            Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note, keys.get(note)));
-                            _noteTextView.post(new Runnable()
+                            _timerTextView.post(new Runnable()
                             {
                                 @Override
                                 public void run()
                                 {
-                                    _noteTextView.setText(note);
+                                    _timerTextView.setText("");
                                 }
                             });
+                        }
+                        else
+                        {
+                            for (final String note : keys.keySet())
+                            {
+                                Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note,
+                                                         keys.get(note)));
+                                _timerTextView.post(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        _timerTextView.setText(note);
+                                    }
+                                });
+                            }
                         }
                     }
 
@@ -306,7 +363,7 @@ public class MainActivity extends AppCompatActivity
                  */
                 private int closestKeyIndex(double freq)
                 {
-                    return 1 + (int)((12 * Math.log(freq / 440) / Math.log(2) + 49) - 0.5);
+                    return 1 + (int) ((12 * Math.log(freq / 440) / Math.log(2) + 49) - 0.5);
                 }
             });
             thread.start();
@@ -314,13 +371,13 @@ public class MainActivity extends AppCompatActivity
         else
         {
             IsRecording = false;
+            //timerHandler.removeCallbacks(timerRunnable);
+            startTime = 0;
             //_recordButton.setImageDrawable(getDrawable(R.drawable.baseline_mic_black_48));
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -349,37 +406,34 @@ public class MainActivity extends AppCompatActivity
         return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         getMenuInflater().inflate(R.menu.menu_actions, menu);
 
         MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView)searchItem.getActionView();
+        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.getQuery();
 
         // Configure the search info and add any event listeners...
         // Define the listener
         MenuItem.OnActionExpandListener expandListener = new MenuItem.OnActionExpandListener()
         {
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             @Contract(pure = true)
             @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
+            public boolean onMenuItemActionCollapse(MenuItem item)
+            {
                 // Do something when action item collapses
                 return true;  // Return true to collapse action view
             }
 
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             @Contract(pure = true)
             @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
+            public boolean onMenuItemActionExpand(MenuItem item)
+            {
                 // Do something when expanded
                 return true;  // Return true to expand action view
             }
@@ -395,4 +449,43 @@ public class MainActivity extends AppCompatActivity
 
         return super.onCreateOptionsMenu(menu);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
+    {
+        _timeSignature = parent.getItemAtPosition(position).toString();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void onNothingSelected(AdapterView<?> parent)
+    { }
+
+    /** {@inheritDoc} */
+    @SuppressLint("DefaultLocale")
+    @Override
+    public void onTempoDialogPositiveClick(int tempo)
+    {
+        _bpm = tempo;
+        _tempoTextView.setText(String.format("%d BPM", _bpm));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void onTempoDialogNegativeClick(int tempo)
+    { }
+
+    /** {@inheritDoc} */
+    @Override
+    public void onTimeSignDialogPositiveClick(String timeSign)
+    {
+        _timeSignature = timeSign;
+        _timeSignatureTextView.setText(timeSign);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void onTimeSignDialogNegativeClick(String timeSign)
+    { }
 }
