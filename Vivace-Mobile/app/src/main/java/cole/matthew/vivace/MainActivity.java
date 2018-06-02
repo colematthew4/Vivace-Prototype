@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.media.Ringtone;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -21,6 +23,7 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.apache.commons.math3.complex.Complex;
@@ -32,15 +35,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, TempoPickerFragment.NoticeTempoDialogListener, TimeSignPickerFragment.NoticeTimeSignDialogListener
+public class MainActivity extends AppCompatActivity implements TempoPickerFragment.NoticeTempoDialogListener, TimeSignPickerFragment.NoticeTimeSignDialogListener, ToolbarFragment.OnFragmentInteractionListener
 {
     public static final String APPLICATION_TAG = "Vivace_Tag";
-    private ImageButton _recordButton;
-    private TextView _timerTextView;
     private TextView _tempoTextView;
     private TextView _timeSignatureTextView;
     private WebView _scoreUI;
+    private ImageButton _recordButton;
+    private LinearLayout _playbackLayout;
+    private TextView _recordingTimer;
+    private ImageButton _pauseButton;
+    private ImageButton _stopButton;
+
     public static volatile boolean IsRecording;
     private String _timeSignature;
     private int _bpm;
@@ -59,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 //            long millis = System.currentTimeMillis() - startTime;
 //            int seconds = (int)(millis / 1000) % 60;
 //            int minutes = seconds / 60;
-//            _timerTextView.setText(String.format("%02d:%02d", minutes, seconds));
+//            _recordingTimer.setText(String.format("%02d:%02d", minutes, seconds));
 //
 //            timerHandler.postDelayed(this, 500);
 //        }
@@ -74,7 +82,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         setContentView(R.layout.activity_main);
         RequestAllPermissions();
 
-        Toolbar toolbar = findViewById(R.id.app_bar);
+        ToolbarFragment toolbarFragment = (ToolbarFragment)getSupportFragmentManager().findFragmentById(R.id.toolbarFragment);
+        Toolbar toolbar = (Toolbar)toolbarFragment.getView();
         setSupportActionBar(toolbar);
 
         _tempoTextView = findViewById(R.id.tempo);
@@ -93,11 +102,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         });
 
-//        Spinner _timeSignature = findViewById(R.id.timeSignSelector);
-//        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.timeSignatures, android.R.layout.simple_spinner_item);
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        _timeSignature.setAdapter(adapter);
-//        _timeSignature.setOnItemSelectedListener(this);
         _timeSignatureTextView = findViewById(R.id.timeSignSelector);
         _timeSignatureTextView.setText("4/4");
         _timeSignatureTextView.setOnClickListener(new View.OnClickListener()
@@ -134,18 +138,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                       "</body>" + "</html>";
         _scoreUI.loadData(html, "text/html", null);
 
-        _timerTextView = findViewById(R.id.recordingTimer);
         _recordButton = findViewById(R.id.recordButton);
         _recordButton.setOnClickListener(new View.OnClickListener()
         {
+            /** {@inheritDoc} */
             @Override
             public void onClick(View v)
             {
-//                String javaScript = "(function() { VF = Vex.Flow; var div = document.getElementById(\"boo\"); var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG); renderer.resize(500,500); var context = renderer.getContext(); context.setFont(\"Arial\", 10, \"\").setBackgroundFillStyle(\"#eed\"); var stave = new VF.Stave(10, 40, 40); stave.addClef(\"treble\").addTimeSignature(\"4/4\"); stave.setContext(context).draw(); return \"test\"; })();";
-                String javaScript = "const VF = Vex.Flow;" + "var vf = new VF.Factory({" +
+                _recordButton.setVisibility(View.GONE);
+                _playbackLayout.setVisibility(View.VISIBLE);
+
+//                String javaScript = "(function() { VF = Vex.Flow; let div = document.getElementById(\"boo\"); let renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG); renderer.resize(500,500); let context = renderer.getContext(); context.setFont(\"Arial\", 10, \"\").setBackgroundFillStyle(\"#eed\"); let stave = new VF.Stave(10, 40, 40); stave.addClef(\"treble\").addTimeSignature(\"4/4\"); stave.setContext(context).draw(); return \"test\"; })();";
+                String javaScript = "const VF = Vex.Flow;" + "let vf = new VF.Factory({" +
                                     "renderer: { elementId: 'boo', width: 500, height: 300 }" +
-                                    "});" + "var score = vf.EasyScore();" +
-                                    "var system = vf.System();" + "system.addStave({" +
+                                    "});" + "let score = vf.EasyScore();" +
+                                    "let system = vf.System();" + "system.addStave({" +
                                     "voices: [" +
                                     "score.voice(score.notes('C#5/q, B4, A4, G#4', {stem: 'up'}))," +
                                     "score.voice(score.notes('C#4/h, C#4', {stem: 'down'}))" + "]" +
@@ -158,14 +165,49 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 analyzeAudio();
             }
         });
+
+        _playbackLayout = findViewById(R.id.playbackLayout);
+        _recordingTimer = findViewById(R.id.recordingTimer);
+        _pauseButton = findViewById(R.id.pauseButton);
+        _pauseButton.setOnClickListener(new View.OnClickListener()
+        {
+            /** {@inheritDoc} */
+            @Override
+            public void onClick(View v)
+            {
+                _recordButton.setVisibility(View.VISIBLE);
+                _playbackLayout.setVisibility(View.GONE);
+
+                IsRecording = false;
+                //timerHandler.removeCallbacks(timerRunnable);
+                startTime = 0;
+            }
+        });
+
+        _stopButton = findViewById(R.id.stopButton);
+        _stopButton.setOnClickListener(new View.OnClickListener()
+        {
+            /** {@inheritDoc} */
+            @Override
+            public void onClick(View v)
+            {
+                _recordButton.setVisibility(View.VISIBLE);
+                _playbackLayout.setVisibility(View.GONE);
+
+                IsRecording = false;
+                //timerHandler.removeCallbacks(timerRunnable);
+                startTime = 0;
+            }
+        });
     }
 
-//    @Override
-//    protected void onPause()
-//    {
-//        super.onPause();
+    /** {@inheritDoc} */
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
 //        timerHandler.removeCallbacks(timerRunnable);
-//    }
+    }
 
     /** Requests all the permissions required by the application. */
     public void RequestAllPermissions()
@@ -238,7 +280,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     {
         if (!IsRecording)
         {
-//            _recordButton.setImageDrawable(getDrawable(R.drawable.ic_info_black_24dp));
             startTime = System.currentTimeMillis();
             //timerHandler.postDelayed(timerRunnable, 0);
 
@@ -302,12 +343,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                         if (keys.keySet().isEmpty())
                         {
-                            _timerTextView.post(new Runnable()
+                            _recordingTimer.post(new Runnable()
                             {
+                                /** {@inheritDoc} */
                                 @Override
                                 public void run()
                                 {
-                                    _timerTextView.setText("");
+                                    _recordingTimer.setText("");
                                 }
                             });
                         }
@@ -317,12 +359,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             {
                                 Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note,
                                                          keys.get(note)));
-                                _timerTextView.post(new Runnable()
+                                _recordingTimer.post(new Runnable()
                                 {
+                                    /** {@inheritDoc} */
                                     @Override
                                     public void run()
                                     {
-                                        _timerTextView.setText(note);
+                                        _recordingTimer.setText(note);
                                     }
                                 });
                             }
@@ -373,7 +416,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             IsRecording = false;
             //timerHandler.removeCallbacks(timerRunnable);
             startTime = 0;
-            //_recordButton.setImageDrawable(getDrawable(R.drawable.baseline_mic_black_48));
         }
     }
 
@@ -451,18 +493,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     /** {@inheritDoc} */
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
-    {
-        _timeSignature = parent.getItemAtPosition(position).toString();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void onNothingSelected(AdapterView<?> parent)
-    { }
-
-    /** {@inheritDoc} */
     @SuppressLint("DefaultLocale")
     @Override
     public void onTempoDialogPositiveClick(int tempo)
@@ -487,5 +517,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     /** {@inheritDoc} */
     @Override
     public void onTimeSignDialogNegativeClick(String timeSign)
+    { }
+
+    /** {@inheritDoc} */
+    @Override
+    public void onFragmentInteraction(Uri uri)
     { }
 }

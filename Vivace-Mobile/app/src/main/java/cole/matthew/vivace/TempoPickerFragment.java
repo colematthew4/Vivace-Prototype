@@ -84,7 +84,6 @@ public class TempoPickerFragment extends DialogFragment
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
         View view = layoutInflater.inflate(R.layout.tempo_picker, null);
 
-//        tempoPicker.setDisplayedValues(getResources().getStringArray(R.array.tempos));
         NumberPicker tempoPicker = view.findViewById(R.id.tempoPicker);
         tempoPicker.setMaxValue(218);
         tempoPicker.setMinValue(40);
@@ -100,6 +99,7 @@ public class TempoPickerFragment extends DialogFragment
 
         return builder.setView(view)
                       .setTitle("Pick the Tempo")
+                      .setIcon(R.drawable.tempo_marker)
                       .setPositiveButton("Select", _onClickListener)
                       .setNegativeButton("Cancel", _onClickListener)
                       .create();

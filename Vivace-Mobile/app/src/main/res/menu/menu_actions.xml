@@ -5,7 +5,7 @@
 	tools:context=".MainActivity">
 	<item
 		android:id="@+id/action_search"
-		android:icon="@drawable/baseline_search_black_24"
+		android:icon="@drawable/ic_search_black_24dp"
 		android:title="@string/action_search"
 		app:showAsAction="ifRoom|collapseActionView"
 		app:actionViewClass="android.support.v7.widget.SearchView" />
@@ -17,7 +17,7 @@
 	<!-- Settings, should always be in the overflow -->
 	<item
 		android:id="@+id/action_settings"
-		android:icon="@drawable/baseline_settings_black_24"
+		android:icon="@drawable/ic_settings_black_24dp"
 	    android:title="@string/settings_actionitem"
 	    app:showAsAction="never"
 		app:actionViewClass="android.support.v7.widget.Button" />

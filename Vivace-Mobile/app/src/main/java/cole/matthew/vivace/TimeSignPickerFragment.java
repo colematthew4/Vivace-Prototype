@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.NumberPicker;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -89,12 +88,12 @@ public class TimeSignPickerFragment extends DialogFragment
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
         View view = layoutInflater.inflate(R.layout.time_signature_picker, null);
 
-        NumberPicker tempoPicker = view.findViewById(R.id.tempoPicker);
-        tempoPicker.setMaxValue(TimeSignatures.length - 1);
-        tempoPicker.setMinValue(0);
-        tempoPicker.setDisplayedValues(TimeSignatures);
-        tempoPicker.setValue(Arrays.asList(TimeSignatures).indexOf(arguments.getString("TimeSignValue")));
-        tempoPicker.setOnScrollListener(new NumberPicker.OnScrollListener()
+        NumberPicker timeSignPicker = view.findViewById(R.id.timeSignPicker);
+        timeSignPicker.setMaxValue(TimeSignatures.length - 1);
+        timeSignPicker.setMinValue(0);
+        timeSignPicker.setDisplayedValues(TimeSignatures);
+        timeSignPicker.setValue(Arrays.asList(TimeSignatures).indexOf(arguments.getString("TimeSignValue")));
+        timeSignPicker.setOnScrollListener(new NumberPicker.OnScrollListener()
         {
             @Override
             public void onScrollStateChange(NumberPicker view, int scrollState)
