@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto"
-	xmlns:tools="http://schemas.android.com/tools"
-	tools:context=".MainActivity">
+	xmlns:app="http://schemas.android.com/apk/res-auto">
+	<!--xmlns:tools="http://schemas.android.com/tools"-->
+	<!--tools:context=".MainActivity">-->
+	<item
+		android:id="@+id/action_share"
+		android:icon="@drawable/ic_share_black_24dp"
+		android:title="@string/share"
+		app:showAsAction="ifRoom"
+		app:actionProviderClass="android.support.v7.widget.ShareActionProvider" />
 	<item
 		android:id="@+id/action_search"
 		android:icon="@drawable/ic_search_black_24dp"
 		android:title="@string/action_search"
 		app:showAsAction="ifRoom|collapseActionView"
 		app:actionViewClass="android.support.v7.widget.SearchView" />
-	<item
-		android:id="@+id/action_share"
-		android:title="@string/share"
-		app:showAsAction="never"
-		app:actionProviderClass="android.support.v7.widget.ShareActionProvider" />
 	<!-- Settings, should always be in the overflow -->
 	<item
 		android:id="@+id/action_settings"
 		android:icon="@drawable/ic_settings_black_24dp"
 	    android:title="@string/settings_actionitem"
 	    app:showAsAction="never"
-		app:actionViewClass="android.support.v7.widget.Button" />
+		app:actionViewClass="android.widget.Button" />
 </menu>

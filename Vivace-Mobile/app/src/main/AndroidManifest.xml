@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="cole.matthew.vivace">
-	
-	<uses-permission android:name="android.permission.RECORD_AUDIO" />
-	<uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
 	    android:icon="@drawable/vivace_icon"
@@ -11,7 +13,9 @@
 	    android:roundIcon="@drawable/vivace_icon"
 	    android:supportsRtl="true"
 	    android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-        <activity android:name=".MainActivity">
+        <activity
+	        android:name=".MainActivity"
+	        android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -20,7 +24,11 @@
         </activity>
         <activity
 	        android:name=".SettingsActivity"
-	        android:label="@string/title_activity_settings">
+	        android:label="@string/title_activity_settings"
+	        android:parentActivityName=".MainActivity">
+            <meta-data
+	            android:name="android.support.PARENT_ACTIVITY"
+	            android:value="cole.matthew.vivace.MainActivity" />
         </activity>
     </application>
 

@@ -1,18 +1,20 @@
 package cole.matthew.vivace;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.media.Ringtone;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.preference.PreferenceManager;
+import android.support.v4.content.PermissionChecker;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -21,7 +23,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
-import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -33,13 +34,25 @@ import org.apache.commons.math3.transform.TransformType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements TempoPickerFragment.NoticeTempoDialogListener, TimeSignPickerFragment.NoticeTimeSignDialogListener, ToolbarFragment.OnFragmentInteractionListener
+public class MainActivity extends AppCompatActivity
+        implements TempoPickerFragment.NoticeTempoDialogListener,
+                   TimeSignPickerFragment.NoticeTimeSignDialogListener,
+                   ToolbarFragment.OnFragmentInteractionListener
 {
     public static final String APPLICATION_TAG = "Vivace_Tag";
+    public final String IS_RECORDING_TAG = "IsRecording_Tag";
+    public final String TIME_SIGNATURE_TAG = "TimeSignature_Tag";
+    public final String BPM_TAG = "BPM_Tag";
+    public final String STARTTIME_TAG = "StartTime_Tag";
+
     private TextView _tempoTextView;
     private TextView _timeSignatureTextView;
     private WebView _scoreUI;
@@ -52,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
     public static volatile boolean IsRecording;
     private String _timeSignature;
     private int _bpm;
-    private long startTime = 0;
+    private long startTime;
 //    private Handler timerHandler = new Handler();
 //    private Runnable timerRunnable = new Runnable()
 //    {
@@ -74,20 +87,25 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
 //    };
 
     /** {@inheritDoc} */
-    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        RequestAllPermissions();
+        VivacePermissions.RequestAllPermissions(this);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        IsRecording = preferences.getBoolean(IS_RECORDING_TAG, false);
+        _timeSignature = preferences.getString(TIME_SIGNATURE_TAG, "4/4");
+        _bpm = preferences.getInt(BPM_TAG, 120);
+        startTime = preferences.getLong(STARTTIME_TAG, 0);
 
         ToolbarFragment toolbarFragment = (ToolbarFragment)getSupportFragmentManager().findFragmentById(R.id.toolbarFragment);
         Toolbar toolbar = (Toolbar)toolbarFragment.getView();
         setSupportActionBar(toolbar);
 
         _tempoTextView = findViewById(R.id.tempo);
-        _tempoTextView.setText("120 BPM");
+        _tempoTextView.setText(String.valueOf(_bpm));
         _tempoTextView.setOnClickListener(new View.OnClickListener()
         {
             /** {@inheritDoc} */
@@ -103,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
         });
 
         _timeSignatureTextView = findViewById(R.id.timeSignSelector);
-        _timeSignatureTextView.setText("4/4");
+        _timeSignatureTextView.setText(_timeSignature);
         _timeSignatureTextView.setOnClickListener(new View.OnClickListener()
         {
             /** {@inheritDoc} */
@@ -119,25 +137,6 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
         });
 
         _scoreUI = findViewById(R.id.scoreUI);
-
-        if (BuildConfig.DEBUG)
-            WebView.setWebContentsDebuggingEnabled(true);
-
-        _scoreUI.getSettings().setJavaScriptEnabled(true);
-        String html = "<html>" + "<head>" +
-                      "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">" +
-                      "<meta name=\"robots\" content=\"noindex, nofollow\">" +
-                      "<meta name=\"googlebot\" content=\"noindex, nofollow\">" +
-                      "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" +
-                      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/css/result-light.css\">" +
-                      "<script type=\"text/javascript\" src=\"https://npmcdn.com/vexflow/releases/vexflow-debug.js\"></script>" +
-                      "<style type=\"text/css\"></style>" + "<title>VexFlow Sandbox</title>" +
-                      "<script type=\"text/javascript\">var alreadyrunflag = 0; if (document.addEventListener) document.addEventListener(\"DOMContentLoaded\", function() { alreadyrunflag=1; }, false); else if (document.all && !window.opera) { document.write('<script type=\"text/javascript\" id=\"contentloadtag\" defer=\"defer\" src=\"javascript:void(0)\"><\\/script>'); var contentloadtag = document.getElementById(\"contentloadtag\"); contentloadtag.onreadystatechange=function() { if (this.readyState==\"complete\") { alreadyrunflag=1; } } } window.onload = function() { setTimeout(\"if (!alreadyrunflag){ }\", 0); }</script>" +
-                      "</head>" + "<body>" + "<div id=\"boo\"></div>" +
-                      "<script>if (window.parent && window.parent.parent) { window.parent.parent.postMessage([\"resultsFrame\", { height: document.body.getBoundingClientRect().height, slug: \"None\"}], \"*\")}</script>" +
-                      "</body>" + "</html>";
-        _scoreUI.loadData(html, "text/html", null);
-
         _recordButton = findViewById(R.id.recordButton);
         _recordButton.setOnClickListener(new View.OnClickListener()
         {
@@ -149,20 +148,30 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
                 _playbackLayout.setVisibility(View.VISIBLE);
 
 //                String javaScript = "(function() { VF = Vex.Flow; let div = document.getElementById(\"boo\"); let renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG); renderer.resize(500,500); let context = renderer.getContext(); context.setFont(\"Arial\", 10, \"\").setBackgroundFillStyle(\"#eed\"); let stave = new VF.Stave(10, 40, 40); stave.addClef(\"treble\").addTimeSignature(\"4/4\"); stave.setContext(context).draw(); return \"test\"; })();";
-                String javaScript = "const VF = Vex.Flow;" + "let vf = new VF.Factory({" +
-                                    "renderer: { elementId: 'boo', width: 500, height: 300 }" +
-                                    "});" + "let score = vf.EasyScore();" +
-                                    "let system = vf.System();" + "system.addStave({" +
-                                    "voices: [" +
-                                    "score.voice(score.notes('C#5/q, B4, A4, G#4', {stem: 'up'}))," +
-                                    "score.voice(score.notes('C#4/h, C#4', {stem: 'down'}))" + "]" +
-                                    "}).addClef('treble').addTimeSignature('4/4');" +
-                                    "system.addStave({" + "voices: [" +
-                                    "score.voice(score.notes('C4/q, B4, Eb5, G5'))" + "]" +
-                                    "}).addClef('treble').addTimeSignature('4/4');" + "vf.draw();";
+                String javaScript = "(function() {" +
+                                        "const VF = Vex.Flow;" +
+                                        "let vf = new VF.Factory({" +
+                                            "renderer: { elementId: 'boo', width: 550, height: 300 }" +
+                                        "});" +
+                                        "let score = vf.EasyScore();" +
+                                        "let system = vf.System();" +
+                                        "system.addStave({" +
+                                            "voices: [" +
+                                                "score.voice(score.notes('C#5/q, B4, A4, G#4', {stem: 'up'}))," +
+                                                "score.voice(score.notes('C#4/h, C#4', {stem: 'down'}))" +
+                                            "]" +
+                                        "}).addClef('treble').addTimeSignature('4/4');" +
+                                        "system.addStave({" +
+                                            "voices: [" +
+                                                "score.voice(score.notes('C4/q, B4, Eb5, G5'))" +
+                                            "]" +
+                                        "}).addClef('treble').addTimeSignature('4/4');" +
+                                        "vf.draw();" +
+                                    "})();";
                 _scoreUI.evaluateJavascript(javaScript, null);
 
-                analyzeAudio();
+                if (VivacePermissions.RequestPermission((Activity)v.getContext(), VivacePermissionCodes.RECORD_AUDIO))
+                    analyzeAudio();
             }
         });
 
@@ -205,69 +214,120 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
     @Override
     protected void onPause()
     {
+        Log.d(APPLICATION_TAG, "MainActivity - OnPause");
         super.onPause();
+
 //        timerHandler.removeCallbacks(timerRunnable);
-    }
-
-    /** Requests all the permissions required by the application. */
-    public void RequestAllPermissions()
-    {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
-        {
-            // Show an explanation to the user *asynchronously* -- don't block this thread waiting
-            // for the user's response! After the user sees the explanation, try again to request
-            // the permission.
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO))
-                Snackbar.make(findViewById(R.id.scoreUI), R.string.audio_permissions_explanation, Snackbar.LENGTH_LONG).show();
-            else                // No explanation needed; request the permission
-                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.RECORD_AUDIO }, VivacePermissionCodes.RECORD_AUDIO);
-        }
-        else        // permission is already granted
-            Log.d(APPLICATION_TAG, "Audio Recording permission granted.");
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED)
-        {
-            // Show an explanation to the user *asynchronously* -- don't block this thread waiting
-            // for the user's response! After the user sees the explanation, try again to request
-            // the permission.
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.INTERNET))
-                Snackbar.make(findViewById(R.id.scoreUI), R.string.internet_permissions_explanation, Snackbar.LENGTH_LONG).show();
-            else                // No explanation needed; request the permission
-                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.INTERNET }, VivacePermissionCodes.INTERNET);
-        }
-        else        // else permission is already granted
-            Log.d(APPLICATION_TAG, "Internet permission granted.");
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+        editor.putBoolean(IS_RECORDING_TAG, IsRecording);
+        editor.putString(TIME_SIGNATURE_TAG, _timeSignature);
+        editor.putInt(BPM_TAG, _bpm);
+        editor.putLong(STARTTIME_TAG, startTime);
+        editor.apply();
     }
 
     /** {@inheritDoc} */
     @Override
+    public void onConfigurationChanged(Configuration newConfig)
+    {
+        Log.d(APPLICATION_TAG, String.format("Configuration Change - %s", newConfig.toString()));
+        super.onConfigurationChanged(newConfig);
+    }
+
+//    /** {@inheritDoc} */
+//    @Override
+//    protected void onSaveInstanceState(Bundle outState)
+//    {
+//        Log.d(APPLICATION_TAG, "MainActivity - OnSaveInstanceState");
+//
+//        super.onSaveInstanceState(outState);
+//        outState.putBoolean(IS_RECORDING_TAG, IsRecording);
+//        outState.putString(TIME_SIGNATURE_TAG, _timeSignature);
+//        outState.putInt(BPM_TAG, _bpm);
+//        outState.putLong(STARTTIME_TAG, startTime);
+//    }
+
+    /** {@inheritDoc} */
+    @SuppressLint("SetJavaScriptEnabled")
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+        Log.d(APPLICATION_TAG, "MainActivity - OnRestoreInstanceState");
+
+        try
+        {
+            InputStream inputStream = getAssets().open("minifiedHTML.html");
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+            StringBuilder stringBuilder = new StringBuilder();
+
+            for (String string; (string = in.readLine()) != null; )
+                stringBuilder.append(string);
+
+            in.close();
+            String minifiedHTML = stringBuilder.toString();
+            _scoreUI.loadData(minifiedHTML, "text/html", null);
+            _scoreUI.getSettings().setJavaScriptEnabled(true);
+
+            if (BuildConfig.DEBUG)
+                WebView.setWebContentsDebuggingEnabled(true);
+        }
+        catch (IOException e)
+        {
+            Log.e(APPLICATION_TAG, e.getMessage());
+            _recordButton.setEnabled(false);
+            new AlertDialog.Builder(this).setTitle("Error").setMessage(
+                    "An issue was encountered displaying the Music Sheet. Please " +
+                    "quit and restart the application to continue. If this issue " +
+                    "persists, please submit a report to https://github.com/colematthew4/Vivace/issues/new " +
+                    "and describe your issue in detail.").setPositiveButton("", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
+                {
+                    dialog.dismiss();
+                }
+            }).create().show();
+        }
+    }
+
+    /** {@inheritDoc} */
+    @PermissionChecker.PermissionResult
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults)
     {
+        ToolbarFragment toolbarFragment = (ToolbarFragment)getSupportFragmentManager().findFragmentById(R.id.toolbarFragment);
+        Toolbar toolbar = (Toolbar)toolbarFragment.getView();
+
         switch (requestCode)
         {
             case VivacePermissionCodes.RECORD_AUDIO:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
-                    // permission was granted
-                    analyzeAudio();
-                }
+                    _recordButton.setEnabled(true);     // permission granted
                 else
-                {
-                    // permission denied
-                    _recordButton.setEnabled(false);
-                }
+                    _recordButton.setEnabled(false);    // permission denied
 
                 break;
             case VivacePermissionCodes.INTERNET:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
-                    // permission granted
-                }
+                    _scoreUI.setEnabled(true);      // permission granted
                 else
-                {
-                    // permission denied
-                    _scoreUI.setEnabled(false);
-                }
+                    _scoreUI.setEnabled(false);     // permission denied
+
+                break;
+            case VivacePermissionCodes.READ_EXTERNAL_STORAGE:
+                assert toolbar != null;
+
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    toolbar.findViewById(R.id.action_share).setEnabled(true);  // permission granted
+                else
+                    toolbar.findViewById(R.id.action_share).setEnabled(false);  // permission denied
+            case VivacePermissionCodes.WRITE_EXTERNAL_STORAGE:
+                assert toolbar != null;
+
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    toolbar.findViewById(R.id.action_share).setEnabled(true);  // permission granted
+                else
+                    toolbar.findViewById(R.id.action_share).setEnabled(false);  // permission denied
 
                 break;
             default:
@@ -290,7 +350,8 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
                 private int format = AudioFormat.ENCODING_PCM_16BIT;
                 private int sampleSize = 44100;
                 //private int bufferSize = AudioRecord.getMinBufferSize(sampleSize, channel_config, format);
-                private int bufferSize = 32768;  // hardcode this so that can get power of 2
+                // must be a power of 2 for the FFT transform to work
+                private int bufferSize = closestPowerOf2(sampleSize / (_bpm * 4 / 60));
                 private AudioRecord audioInput = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleSize, channel_config, format, bufferSize);
 
                 /** {@inheritDoc} */
@@ -307,7 +368,7 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
 
                     while (MainActivity.IsRecording)
                     {
-                        bytesRecorded += audioInput.read(audioBuffer, 0, 22050);
+                        bytesRecorded += audioInput.read(audioBuffer, 0, bufferSize);
                         Log.i(TAG, "bytesRecorded: " + String.valueOf(bytesRecorded));
 
                         double[] buffer = new double[audioBuffer.length];
@@ -337,7 +398,7 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
                         List<Float> found = DFT.process(results, sampleSize, resultC.length, 7);
                         HashMap<String, Float> keys = new HashMap<>();
                         //if (!found.isEmpty())
-                        //keys.put(closestKey(found.get(0)), found.get(0));
+                        //  keys.put(closestKey(found.get(0)), found.get(0));
                         for (float freq : found)
                             keys.put(closestKey(freq), freq);
 
@@ -357,8 +418,7 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
                         {
                             for (final String note : keys.keySet())
                             {
-                                Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note,
-                                                         keys.get(note)));
+                                Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note, keys.get(note)));
                                 _recordingTimer.post(new Runnable()
                                 {
                                     /** {@inheritDoc} */
@@ -379,9 +439,28 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
                 /** A list of human-readable musical notes. */
                 private String[] notes = { "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#" };
 
+                @Contract(pure = true)
+                private int closestPowerOf2(final double sixteenthsPerSecond)
+                {
+                    double[] powers_of_2 = { 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096,
+                                             8192, 16384, 32768 };
+                    int result = -1;
+
+                    for (int index = 0; result == -1 && index < powers_of_2.length; ++index)
+                    {
+                        if (powers_of_2[index] < sixteenthsPerSecond &&
+                            powers_of_2[index + 1] > sixteenthsPerSecond)
+                            result = (int)powers_of_2[index];
+                    }
+
+                    return result;
+                }
+
                 /**
                  * Converts the frequency into a human-readable string representing the note on a piano.
+                 *
                  * @param freq The frequency to convert to a string
+                 *
                  * @return A string representing the note on a piano.
                  */
                 private String closestKey(double freq)
@@ -401,12 +480,14 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
                 /**
                  * Takes a frequency and returns the corresponding key number on a piano in the range 1-88. This
                  * formula is derived from the logarithmic nature of the frequency.
+                 *
                  * @param freq The frequency to get the key number for.
+                 *
                  * @return A number between 1 and 88 identifying the key number of the note.
                  */
                 private int closestKeyIndex(double freq)
                 {
-                    return 1 + (int) ((12 * Math.log(freq / 440) / Math.log(2) + 49) - 0.5);
+                    return 1 + (int)((12 * Math.log(freq / 440) / Math.log(2) + 49) - 0.5);
                 }
             });
             thread.start();
@@ -429,6 +510,7 @@ public class MainActivity extends AppCompatActivity implements TempoPickerFragme
         {
             case R.id.action_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
+
                 break;
             case R.id.action_search:
 
