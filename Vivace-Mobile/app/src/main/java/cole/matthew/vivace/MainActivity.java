@@ -33,17 +33,25 @@ import org.apache.commons.math3.transform.FastFourierTransformer;
 import org.apache.commons.math3.transform.TransformType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jfugue.integration.MusicXmlParserListener;
+import org.jfugue.pattern.Pattern;
+import org.staccato.StaccatoParser;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
+import cole.matthew.vivace.Exceptions.StorageNotReadableException;
 import cole.matthew.vivace.Helpers.DFT;
+import cole.matthew.vivace.Helpers.FileStore;
 import cole.matthew.vivace.Helpers.VivacePermissionCodes;
 import cole.matthew.vivace.Helpers.VivacePermissions;
 import cole.matthew.vivace.Models.TimeSignature;
+import nu.xom.Serializer;
 
 public class MainActivity extends AppCompatActivity
         implements TempoPickerFragment.NoticeTempoDialogListener,
@@ -65,10 +73,12 @@ public class MainActivity extends AppCompatActivity
     private ImageButton _pauseButton;
     private ImageButton _stopButton;
 
+    public static Pattern _score;
     public static volatile boolean IsRecording;
     private TimeSignature _timeSignature;
     private int _bpm;
     private long startTime;
+    private File tempFile;      // used to handle temporary recording storage for sharing files
 //    private Handler timerHandler = new Handler();
 //    private Runnable timerRunnable = new Runnable()
 //    {
@@ -105,6 +115,7 @@ public class MainActivity extends AppCompatActivity
         _timeSignature = new TimeSignature(preferences.getString(TIME_SIGNATURE_TAG, "4/4"));
         _bpm = preferences.getInt(BPM_TAG, 120);
         startTime = preferences.getLong(STARTTIME_TAG, 0);
+        _score = new Pattern().setTempo(_bpm);
 
         _tempoTextView = findViewById(R.id.tempo);
         _tempoTextView.setText(String.format("%d BPM", _bpm));
@@ -253,6 +264,18 @@ public class MainActivity extends AppCompatActivity
 
     /** {@inheritDoc} */
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if (requestCode == 3461 && tempFile != null && tempFile.exists())
+        {
+            tempFile.delete();
+            tempFile = null;
+        }
+    }
+
+    /** {@inheritDoc} */
+    @SuppressLint("RestrictedApi")
+    @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
         boolean result = true;
@@ -263,15 +286,55 @@ public class MainActivity extends AppCompatActivity
                 startActivity(new Intent(this, SettingsActivity.class));
 
                 break;
-            case R.id.action_search:
-
-                break;
+//            case R.id.action_search:
+//
+//                break;
             case R.id.action_share:
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_SEND);
-                intent.putExtra(Intent.EXTRA_EMAIL, new String[] { "This is my text to send." });
-                intent.setType("text/plain");
-                startActivity(Intent.createChooser(intent, getResources().getText(R.string.action_search)));
+                try
+                {
+                    FileStore fileStore = new FileStore(this);
+                    tempFile = new File(fileStore.getPrivateStorageDir(), "music.xml");
+                    FileOutputStream file = new FileOutputStream(tempFile);
+//                    FileOutputStream file = openFileOutput("music.xml", MODE_PRIVATE);
+//                    MusicXmlRenderer renderer = new MusicXmlRenderer();
+//                    MusicStringParser parser = new MusicStringParser();
+//                    parser.addParserListener(renderer);
+//                    parser.parse(_score);
+                    MusicXmlParserListener renderer = new MusicXmlParserListener();
+                    StaccatoParser parser = new StaccatoParser();
+                    parser.addParserListener(renderer);
+                    parser.parse(_score);
+
+                    Serializer serializer = new Serializer(file, "UTF-8");
+                    serializer.setIndent(4);
+                    serializer.write(renderer.getMusicXMLDoc());
+
+                    file.flush();
+                    file.close();
+
+                    Intent shareIntent = new Intent()
+                            .setAction(Intent.ACTION_SEND).setType("text/xml")
+                            .putExtra(Intent.EXTRA_EMAIL, "Hello World")
+                            .putExtra(Intent.EXTRA_STREAM, Uri.fromFile(tempFile))
+                            .putExtra(Intent.EXTRA_TEXT, "Sharing a file...")
+                            .putExtra(Intent.EXTRA_SUBJECT, "Subject");
+                    startActivityForResult(Intent.createChooser(shareIntent, "Share Your Recording"), 3461);
+                }
+                catch (IOException | StorageNotReadableException e)
+                {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Error Encountered")
+                            .setMessage("Vivace was unable to share your recording.")
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which)
+                                {
+                                    dialog.dismiss();
+                                }
+                            }).create().show();
+                }
+
                 break;
             default:
                 result = super.onOptionsItemSelected(item);
@@ -320,9 +383,7 @@ public class MainActivity extends AppCompatActivity
         // Assign the listener to that action item
         actionMenuItem.setOnActionExpandListener(expandListener);
 
-        // Any other things you have to do when creating the options menu...
         VivacePermissions.requestAllPermissions(this);
-
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -482,6 +543,7 @@ public class MainActivity extends AppCompatActivity
                             for (final String note : keys.keySet())
                             {
                                 Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note, keys.get(note)));
+                                _score.add(String.format("%ss ", note));
                                 _recordingTimer.post(new Runnable()
                                 {
                                     /** {@inheritDoc} */
