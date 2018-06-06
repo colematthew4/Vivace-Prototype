@@ -1,5 +1,6 @@
 package cole.matthew.vivace;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -82,6 +83,7 @@ public class TempoPickerFragment extends DialogFragment
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
+        @SuppressLint("InflateParams")
         View view = layoutInflater.inflate(R.layout.tempo_picker, null);
 
         NumberPicker tempoPicker = view.findViewById(R.id.tempoPicker);

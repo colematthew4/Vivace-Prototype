@@ -42,6 +42,8 @@ b}},{key:"EasyScore",value:function(){var a=arguments.length&lt;=0||void 0===arg
 	<string name="Default_Timer" translatable="false">00:00</string>
 	<string name="pause_button_desc">Pause</string>
 	<string name="tempo_contentDesc">Tempo</string>
+	<string name="persist_recordings_summary">If you decide to uninstall Vivace, using Public Storage will keep your previously saved recordings. Otherwise recordings will be removed with Vivace.</string>
+	<string name="persist_recordings_title">Use Public Storage</string>
 	
 	<!-- Strings related to Settings -->
 	

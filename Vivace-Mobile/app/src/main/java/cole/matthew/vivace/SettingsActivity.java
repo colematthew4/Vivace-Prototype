@@ -2,6 +2,8 @@ package cole.matthew.vivace;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -9,6 +11,7 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.SwitchPreference;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -20,6 +23,10 @@ import android.support.v4.app.NavUtils;
 import android.view.ViewGroup;
 
 import org.jetbrains.annotations.NotNull;
+
+import cole.matthew.vivace.Exceptions.InsufficientStorageException;
+import cole.matthew.vivace.Exceptions.StorageNotReadableException;
+import cole.matthew.vivace.Helpers.FileStore;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -36,6 +43,7 @@ public class SettingsActivity extends AppCompatActivity implements ToolbarFragme
 {
     public static final String KEY_FILE_STORAGE_NAME = "file_storage_name";
     public static final String KEY_FILE_STORAGE_TYPE = "file_storage_type";
+    public static final String KEY_FILE_STORAGE_LOCATION = "file_storage_location";
 
     /**
      * A preference value change listener that updates the preference's summary
@@ -67,7 +75,7 @@ public class SettingsActivity extends AppCompatActivity implements ToolbarFragme
                 // Set the summary to reflect the new value.
                 preference.setSummary(index >= 0 ? listPreference.getEntries()[index] : null);
             }
-            else
+            else if (!(preference instanceof SwitchPreference))
             {
                 // For all other preferences, set the summary to the value's
                 // simple string representation.
@@ -75,6 +83,64 @@ public class SettingsActivity extends AppCompatActivity implements ToolbarFragme
             }
 
             return true;
+        }
+    };
+
+    /**
+     * A preference value change listener that transfers saved files to/from public and private
+     * external storage on your device.
+     */
+    private static Preference.OnPreferenceChangeListener sBindSwitchPreferenceValueListener = new Preference.OnPreferenceChangeListener()
+    {
+        /** {@inheritDoc} */
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue)
+        {
+            boolean result = true;
+            boolean switchValue = (boolean)newValue;
+
+            try
+            {
+                FileStore fileStore = new FileStore((Activity)preference.getContext());
+
+                if (switchValue)
+                    fileStore.transferStorageToPublic();
+                else
+                    fileStore.transferStorageToPrivate();
+            }
+            catch (InsufficientStorageException e)
+            {
+                result = false;
+                new AlertDialog.Builder(preference.getContext())
+                        .setTitle("Not Enough Storage")
+                        .setMessage(e.getMessage())
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                dialog.dismiss();
+                            }
+                        }).create().show();
+            }
+            catch (StorageNotReadableException e)
+            {
+                result = false;
+                new AlertDialog.Builder(preference.getContext())
+                        .setTitle("Failed to Save Recordings to Device Storage")
+                        .setMessage(e.getMessage())
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                dialog.dismiss();
+                            }
+                        })
+                        .create().show();
+            }
+
+            return result;
         }
     };
 
@@ -92,8 +158,7 @@ public class SettingsActivity extends AppCompatActivity implements ToolbarFragme
         // Set the listener to watch for value changes.
         preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
 
-        // Trigger the listener immediately with the preference's
-        // current value.
+        // Trigger the listener immediately with the preference's current value.
         sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, PreferenceManager.getDefaultSharedPreferences(preference.getContext())
                                                                                               .getString(preference.getKey(), ""));
     }
@@ -246,6 +311,7 @@ public class SettingsActivity extends AppCompatActivity implements ToolbarFragme
             // guidelines.
             bindPreferenceSummaryToValue(findPreference(SettingsActivity.KEY_FILE_STORAGE_NAME));
             bindPreferenceSummaryToValue(findPreference(SettingsActivity.KEY_FILE_STORAGE_TYPE));
+            findPreference(SettingsActivity.KEY_FILE_STORAGE_LOCATION).setOnPreferenceChangeListener(sBindSwitchPreferenceValueListener);
         }
 
         /** {@inheritDoc} */

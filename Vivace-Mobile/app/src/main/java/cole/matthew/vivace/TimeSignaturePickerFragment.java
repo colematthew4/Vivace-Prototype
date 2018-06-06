@@ -1,5 +1,6 @@
 package cole.matthew.vivace;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -24,8 +25,11 @@ import java.util.Arrays;
  *     (see {@link #onAttach(Context)}).
  * </p>
  */
-public class TimeSignPickerFragment extends DialogFragment
+public class TimeSignaturePickerFragment extends DialogFragment
 {
+    /**
+     * An interface to allow an {@link android.app.Activity} to listen for value changes from the {@link TimeSignaturePickerFragment}.
+     */
     public interface NoticeTimeSignDialogListener
     {
         /**
@@ -86,6 +90,7 @@ public class TimeSignPickerFragment extends DialogFragment
         TimeSignatures = getResources().getStringArray(R.array.timeSignatures);
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
+        @SuppressLint("InflateParams")
         View view = layoutInflater.inflate(R.layout.time_signature_picker, null);
 
         NumberPicker timeSignPicker = view.findViewById(R.id.timeSignPicker);

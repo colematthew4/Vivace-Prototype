@@ -13,7 +13,6 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -22,6 +21,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -39,12 +39,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+
+import cole.matthew.vivace.Helpers.DFT;
+import cole.matthew.vivace.Helpers.VivacePermissionCodes;
+import cole.matthew.vivace.Helpers.VivacePermissions;
+import cole.matthew.vivace.Models.TimeSignature;
 
 public class MainActivity extends AppCompatActivity
         implements TempoPickerFragment.NoticeTempoDialogListener,
-                   TimeSignPickerFragment.NoticeTimeSignDialogListener,
+                   TimeSignaturePickerFragment.NoticeTimeSignDialogListener,
                    ToolbarFragment.OnFragmentInteractionListener
 {
     public static final String APPLICATION_TAG = "Vivace_Tag";
@@ -63,7 +66,7 @@ public class MainActivity extends AppCompatActivity
     private ImageButton _stopButton;
 
     public static volatile boolean IsRecording;
-    private String _timeSignature;
+    private TimeSignature _timeSignature;
     private int _bpm;
     private long startTime;
 //    private Handler timerHandler = new Handler();
@@ -87,25 +90,24 @@ public class MainActivity extends AppCompatActivity
 //    };
 
     /** {@inheritDoc} */
+    @SuppressLint("DefaultLocale")
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        VivacePermissions.RequestAllPermissions(this);
-
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        IsRecording = preferences.getBoolean(IS_RECORDING_TAG, false);
-        _timeSignature = preferences.getString(TIME_SIGNATURE_TAG, "4/4");
-        _bpm = preferences.getInt(BPM_TAG, 120);
-        startTime = preferences.getLong(STARTTIME_TAG, 0);
-
         ToolbarFragment toolbarFragment = (ToolbarFragment)getSupportFragmentManager().findFragmentById(R.id.toolbarFragment);
         Toolbar toolbar = (Toolbar)toolbarFragment.getView();
         setSupportActionBar(toolbar);
 
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        IsRecording = preferences.getBoolean(IS_RECORDING_TAG, false);
+        _timeSignature = new TimeSignature(preferences.getString(TIME_SIGNATURE_TAG, "4/4"));
+        _bpm = preferences.getInt(BPM_TAG, 120);
+        startTime = preferences.getLong(STARTTIME_TAG, 0);
+
         _tempoTextView = findViewById(R.id.tempo);
-        _tempoTextView.setText(String.valueOf(_bpm));
+        _tempoTextView.setText(String.format("%d BPM", _bpm));
         _tempoTextView.setOnClickListener(new View.OnClickListener()
         {
             /** {@inheritDoc} */
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         _timeSignatureTextView = findViewById(R.id.timeSignSelector);
-        _timeSignatureTextView.setText(_timeSignature);
+        _timeSignatureTextView.setText(_timeSignature.toString());
         _timeSignatureTextView.setOnClickListener(new View.OnClickListener()
         {
             /** {@inheritDoc} */
@@ -129,8 +131,8 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v)
             {
                 Bundle arguments = new Bundle();
-                arguments.putString("TimeSignValue", _timeSignature);
-                TimeSignPickerFragment timeSignPickerFragment = new TimeSignPickerFragment();
+                arguments.putString("TimeSignValue", _timeSignature.toString());
+                TimeSignaturePickerFragment timeSignPickerFragment = new TimeSignaturePickerFragment();
                 timeSignPickerFragment.setArguments(arguments);
                 timeSignPickerFragment.show(getFragmentManager(), "TempoPicker");
             }
@@ -149,7 +151,7 @@ public class MainActivity extends AppCompatActivity
 
 //                String javaScript = "(function() { VF = Vex.Flow; let div = document.getElementById(\"boo\"); let renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG); renderer.resize(500,500); let context = renderer.getContext(); context.setFont(\"Arial\", 10, \"\").setBackgroundFillStyle(\"#eed\"); let stave = new VF.Stave(10, 40, 40); stave.addClef(\"treble\").addTimeSignature(\"4/4\"); stave.setContext(context).draw(); return \"test\"; })();";
                 String javaScript = "(function() {" +
-                                        "const VF = Vex.Flow;" +
+                                        "let VF = Vex.Flow;" +
                                         "let vf = new VF.Factory({" +
                                             "renderer: { elementId: 'boo', width: 550, height: 300 }" +
                                         "});" +
@@ -170,7 +172,7 @@ public class MainActivity extends AppCompatActivity
                                     "})();";
                 _scoreUI.evaluateJavascript(javaScript, null);
 
-                if (VivacePermissions.RequestPermission((Activity)v.getContext(), VivacePermissionCodes.RECORD_AUDIO))
+                if (VivacePermissions.requestPermission((Activity)v.getContext(), VivacePermissionCodes.RECORD_AUDIO))
                     analyzeAudio();
             }
         });
@@ -208,6 +210,8 @@ public class MainActivity extends AppCompatActivity
                 startTime = 0;
             }
         });
+
+        initializeWebView();
     }
 
     /** {@inheritDoc} */
@@ -220,7 +224,7 @@ public class MainActivity extends AppCompatActivity
 //        timerHandler.removeCallbacks(timerRunnable);
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
         editor.putBoolean(IS_RECORDING_TAG, IsRecording);
-        editor.putString(TIME_SIGNATURE_TAG, _timeSignature);
+        editor.putString(TIME_SIGNATURE_TAG, _timeSignature.toString());
         editor.putInt(BPM_TAG, _bpm);
         editor.putLong(STARTTIME_TAG, startTime);
         editor.apply();
@@ -246,259 +250,6 @@ public class MainActivity extends AppCompatActivity
 //        outState.putInt(BPM_TAG, _bpm);
 //        outState.putLong(STARTTIME_TAG, startTime);
 //    }
-
-    /** {@inheritDoc} */
-    @SuppressLint("SetJavaScriptEnabled")
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState)
-    {
-        Log.d(APPLICATION_TAG, "MainActivity - OnRestoreInstanceState");
-
-        try
-        {
-            InputStream inputStream = getAssets().open("minifiedHTML.html");
-            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-            StringBuilder stringBuilder = new StringBuilder();
-
-            for (String string; (string = in.readLine()) != null; )
-                stringBuilder.append(string);
-
-            in.close();
-            String minifiedHTML = stringBuilder.toString();
-            _scoreUI.loadData(minifiedHTML, "text/html", null);
-            _scoreUI.getSettings().setJavaScriptEnabled(true);
-
-            if (BuildConfig.DEBUG)
-                WebView.setWebContentsDebuggingEnabled(true);
-        }
-        catch (IOException e)
-        {
-            Log.e(APPLICATION_TAG, e.getMessage());
-            _recordButton.setEnabled(false);
-            new AlertDialog.Builder(this).setTitle("Error").setMessage(
-                    "An issue was encountered displaying the Music Sheet. Please " +
-                    "quit and restart the application to continue. If this issue " +
-                    "persists, please submit a report to https://github.com/colematthew4/Vivace/issues/new " +
-                    "and describe your issue in detail.").setPositiveButton("", new DialogInterface.OnClickListener()
-            {
-                @Override
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    dialog.dismiss();
-                }
-            }).create().show();
-        }
-    }
-
-    /** {@inheritDoc} */
-    @PermissionChecker.PermissionResult
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults)
-    {
-        ToolbarFragment toolbarFragment = (ToolbarFragment)getSupportFragmentManager().findFragmentById(R.id.toolbarFragment);
-        Toolbar toolbar = (Toolbar)toolbarFragment.getView();
-
-        switch (requestCode)
-        {
-            case VivacePermissionCodes.RECORD_AUDIO:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    _recordButton.setEnabled(true);     // permission granted
-                else
-                    _recordButton.setEnabled(false);    // permission denied
-
-                break;
-            case VivacePermissionCodes.INTERNET:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    _scoreUI.setEnabled(true);      // permission granted
-                else
-                    _scoreUI.setEnabled(false);     // permission denied
-
-                break;
-            case VivacePermissionCodes.READ_EXTERNAL_STORAGE:
-                assert toolbar != null;
-
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    toolbar.findViewById(R.id.action_share).setEnabled(true);  // permission granted
-                else
-                    toolbar.findViewById(R.id.action_share).setEnabled(false);  // permission denied
-            case VivacePermissionCodes.WRITE_EXTERNAL_STORAGE:
-                assert toolbar != null;
-
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    toolbar.findViewById(R.id.action_share).setEnabled(true);  // permission granted
-                else
-                    toolbar.findViewById(R.id.action_share).setEnabled(false);  // permission denied
-
-                break;
-            default:
-                Log.d(APPLICATION_TAG, String.format("Got an unrecognized request code from asking for permissions: %d", requestCode));
-                break;
-        }
-    }
-
-    private void analyzeAudio()
-    {
-        if (!IsRecording)
-        {
-            startTime = System.currentTimeMillis();
-            //timerHandler.postDelayed(timerRunnable, 0);
-
-            Thread thread = new Thread(new Runnable()
-            {
-                private static final String TAG = "FrequencyThreadTAG";
-                private int channel_config = AudioFormat.CHANNEL_IN_MONO;
-                private int format = AudioFormat.ENCODING_PCM_16BIT;
-                private int sampleSize = 44100;
-                //private int bufferSize = AudioRecord.getMinBufferSize(sampleSize, channel_config, format);
-                // must be a power of 2 for the FFT transform to work
-                private int bufferSize = closestPowerOf2(sampleSize / (_bpm * 4 / 60));
-                private AudioRecord audioInput = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleSize, channel_config, format, bufferSize);
-
-                /** {@inheritDoc} */
-                @Override
-                public void run()
-                {
-                    Log.i(TAG, "bufferSize: " + String.valueOf(bufferSize));
-
-                    //Read audio
-                    short[] audioBuffer = new short[bufferSize]; //short
-                    audioInput.startRecording();
-                    MainActivity.IsRecording = true;
-                    int bytesRecorded = 0;
-
-                    while (MainActivity.IsRecording)
-                    {
-                        bytesRecorded += audioInput.read(audioBuffer, 0, bufferSize);
-                        Log.i(TAG, "bytesRecorded: " + String.valueOf(bytesRecorded));
-
-                        double[] buffer = new double[audioBuffer.length];
-                        int idx = 0;
-                        for (int i = 0; i < audioBuffer.length && idx < audioBuffer.length; i += 2)
-                        {
-                            short bLow = audioBuffer[i];
-                            short bHigh = audioBuffer[i + 1];
-
-                            buffer[idx++] = (bLow & 0xFF | bHigh << 8) / 32767;
-                            if (channel_config == AudioFormat.CHANNEL_IN_STEREO)
-                                i += 2;
-                        }
-
-                        FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
-                        Complex[] resultC = fft.transform(buffer, TransformType.FORWARD);
-
-                        double[] results = new double[resultC.length];
-                        for (int i = 0; i < resultC.length; ++i)
-                        {
-                            double real = resultC[i].getReal();
-                            double imag = resultC[i].getImaginary();
-
-                            results[i] = Math.sqrt(real * real + imag * imag);
-                        }
-
-                        List<Float> found = DFT.process(results, sampleSize, resultC.length, 7);
-                        HashMap<String, Float> keys = new HashMap<>();
-                        //if (!found.isEmpty())
-                        //  keys.put(closestKey(found.get(0)), found.get(0));
-                        for (float freq : found)
-                            keys.put(closestKey(freq), freq);
-
-                        if (keys.keySet().isEmpty())
-                        {
-                            _recordingTimer.post(new Runnable()
-                            {
-                                /** {@inheritDoc} */
-                                @Override
-                                public void run()
-                                {
-                                    _recordingTimer.setText("");
-                                }
-                            });
-                        }
-                        else
-                        {
-                            for (final String note : keys.keySet())
-                            {
-                                Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note, keys.get(note)));
-                                _recordingTimer.post(new Runnable()
-                                {
-                                    /** {@inheritDoc} */
-                                    @Override
-                                    public void run()
-                                    {
-                                        _recordingTimer.setText(note);
-                                    }
-                                });
-                            }
-                        }
-                    }
-
-                    audioInput.stop();
-                    audioInput.release();
-                }
-
-                /** A list of human-readable musical notes. */
-                private String[] notes = { "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#" };
-
-                @Contract(pure = true)
-                private int closestPowerOf2(final double sixteenthsPerSecond)
-                {
-                    double[] powers_of_2 = { 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096,
-                                             8192, 16384, 32768 };
-                    int result = -1;
-
-                    for (int index = 0; result == -1 && index < powers_of_2.length; ++index)
-                    {
-                        if (powers_of_2[index] < sixteenthsPerSecond &&
-                            powers_of_2[index + 1] > sixteenthsPerSecond)
-                            result = (int)powers_of_2[index];
-                    }
-
-                    return result;
-                }
-
-                /**
-                 * Converts the frequency into a human-readable string representing the note on a piano.
-                 *
-                 * @param freq The frequency to convert to a string
-                 *
-                 * @return A string representing the note on a piano.
-                 */
-                private String closestKey(double freq)
-                {
-                    String result = null;
-                    int key = closestKeyIndex(freq);
-
-                    if (key > 0)
-                    {
-                        int range = 1 + (key - 1) / notes.length;
-                        result = notes[(key - 1) % notes.length] + range;
-                    }
-
-                    return result;
-                }
-
-                /**
-                 * Takes a frequency and returns the corresponding key number on a piano in the range 1-88. This
-                 * formula is derived from the logarithmic nature of the frequency.
-                 *
-                 * @param freq The frequency to get the key number for.
-                 *
-                 * @return A number between 1 and 88 identifying the key number of the note.
-                 */
-                private int closestKeyIndex(double freq)
-                {
-                    return 1 + (int)((12 * Math.log(freq / 440) / Math.log(2) + 49) - 0.5);
-                }
-            });
-            thread.start();
-        }
-        else
-        {
-            IsRecording = false;
-            //timerHandler.removeCallbacks(timerRunnable);
-            startTime = 0;
-        }
-    }
 
     /** {@inheritDoc} */
     @Override
@@ -570,8 +321,56 @@ public class MainActivity extends AppCompatActivity
         actionMenuItem.setOnActionExpandListener(expandListener);
 
         // Any other things you have to do when creating the options menu...
+        VivacePermissions.requestAllPermissions(this);
 
         return super.onCreateOptionsMenu(menu);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults)
+    {
+        ToolbarFragment toolbarFragment = (ToolbarFragment)getSupportFragmentManager().findFragmentById(R.id.toolbarFragment);
+        Toolbar toolbar = (Toolbar)toolbarFragment.getView();
+
+        switch (requestCode)
+        {
+            case VivacePermissionCodes.RECORD_AUDIO:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    _recordButton.setVisibility(View.VISIBLE);                 // permission granted
+                else
+                    _recordButton.setVisibility(View.INVISIBLE);                // permission denied
+
+                break;
+            case VivacePermissionCodes.INTERNET:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    _scoreUI.setVisibility(View.VISIBLE);                      // permission granted
+                else
+                    _scoreUI.setVisibility(View.INVISIBLE);                     // permission denied
+
+                break;
+            case VivacePermissionCodes.READ_EXTERNAL_STORAGE:
+                assert toolbar != null;
+
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    toolbar.getMenu().findItem(R.id.action_share).setVisible(true);     // permission granted
+                else
+                    toolbar.getMenu().findItem(R.id.action_share).setVisible(false);    // permission denied
+
+                break;
+            case VivacePermissionCodes.WRITE_EXTERNAL_STORAGE:
+                assert toolbar != null;
+
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    toolbar.getMenu().findItem(R.id.action_share).setVisible(true);     // permission granted
+                else
+                    toolbar.getMenu().findItem(R.id.action_share).setVisible(false);    // permission denied
+
+                break;
+            default:
+                Log.d(APPLICATION_TAG, String.format("Got an unrecognized request code from asking for permissions: %d", requestCode));
+                break;
+        }
     }
 
     /** {@inheritDoc} */
@@ -592,8 +391,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onTimeSignDialogPositiveClick(String timeSign)
     {
-        _timeSignature = timeSign;
-        _timeSignatureTextView.setText(timeSign);
+        _timeSignature = new TimeSignature(timeSign);
+        _timeSignatureTextView.setText(_timeSignature.toString());
     }
 
     /** {@inheritDoc} */
@@ -605,4 +404,175 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onFragmentInteraction(Uri uri)
     { }
+
+    private void analyzeAudio()
+    {
+        if (!IsRecording)
+        {
+            startTime = System.currentTimeMillis();
+            //timerHandler.postDelayed(timerRunnable, 0);
+
+            Thread thread = new Thread(new Runnable()
+            {
+                private static final String TAG = "FrequencyThreadTAG";
+                private int channel_config = AudioFormat.CHANNEL_IN_MONO;
+                private int format = AudioFormat.ENCODING_PCM_16BIT;
+                private int sampleSize = 44100;
+                //private int bufferSize = AudioRecord.getMinBufferSize(sampleSize, channel_config, format);
+                // must be a power of 2 for the FFT transform to work
+                private int bufferSize = closestPowerOf2(sampleSize / (_bpm * 4 / 60));
+                private AudioRecord audioInput = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleSize, channel_config, format, bufferSize);
+
+                /** {@inheritDoc} */
+                @Override
+                public void run()
+                {
+                    Log.i(TAG, "bufferSize: " + String.valueOf(bufferSize));
+
+                    //Read audio
+                    short[] audioBuffer = new short[bufferSize]; //short
+                    audioInput.startRecording();
+                    MainActivity.IsRecording = true;
+                    int bytesRecorded = 0;
+
+                    while (MainActivity.IsRecording)
+                    {
+                        bytesRecorded += audioInput.read(audioBuffer, 0, bufferSize);
+                        Log.i(TAG, "bytesRecorded: " + String.valueOf(bytesRecorded));
+
+                        double[] buffer = new double[audioBuffer.length];
+                        int idx = 0;
+                        for (int i = 0; i < audioBuffer.length && idx < audioBuffer.length; i += 2)
+                        {
+                            short bLow = audioBuffer[i];
+                            short bHigh = audioBuffer[i + 1];
+
+                            buffer[idx++] = (bLow & 0xFF | bHigh << 8) / 32767;
+                            if (channel_config == AudioFormat.CHANNEL_IN_STEREO)
+                                i += 2;
+                        }
+
+                        FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
+                        Complex[] resultC = fft.transform(buffer, TransformType.FORWARD);
+
+                        double[] results = new double[resultC.length];
+                        for (int i = 0; i < resultC.length; ++i)
+                        {
+                            double real = resultC[i].getReal();
+                            double imag = resultC[i].getImaginary();
+
+                            results[i] = Math.sqrt(real * real + imag * imag);
+                        }
+
+                        HashMap<String, Float> keys = DFT.process(results, sampleSize, resultC.length, 7);
+                        if (keys.keySet().isEmpty())
+                        {
+                            _recordingTimer.post(new Runnable()
+                            {
+                                /** {@inheritDoc} */
+                                @Override
+                                public void run()
+                                {
+                                    _recordingTimer.setText("");
+                                }
+                            });
+                        }
+                        else
+                        {
+                            for (final String note : keys.keySet())
+                            {
+                                Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note, keys.get(note)));
+                                _recordingTimer.post(new Runnable()
+                                {
+                                    /** {@inheritDoc} */
+                                    @Override
+                                    public void run()
+                                    {
+                                        _recordingTimer.setText(note);
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    audioInput.stop();
+                    audioInput.release();
+                }
+
+                /**
+                 * Finds the closest power of 2 to the number of sixteenth notes that can be played
+                 * per second (via the BPM). This is so the Fast Fourier Transform can alwasy perform
+                 * the correct translation without failing.
+                 *
+                 * @param sixteenthsPerSecond The number of sixteenth notes that can be played per
+                 *                            second, calculated from the BPM.
+                 * @return The closest power of 2 to the number of sixteenth notes that can be played
+                 * per second.
+                 */
+                @Contract(pure = true)
+                private int closestPowerOf2(final double sixteenthsPerSecond)
+                {
+                    double[] powers_of_2 = { 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768 };
+                    int result = -1;
+
+                    for (int index = powers_of_2.length - 1; result == -1 && index > 0; index--)
+                    {
+                        if (powers_of_2[index] > sixteenthsPerSecond && powers_of_2[index - 1] < sixteenthsPerSecond)
+                            result = (int)powers_of_2[index - 1];
+                    }
+
+                    return result;
+                }
+            });
+            thread.start();
+        }
+        else
+        {
+            IsRecording = false;
+            //timerHandler.removeCallbacks(timerRunnable);
+            startTime = 0;
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private void initializeWebView()
+    {
+        try
+        {
+            InputStream inputStream = getAssets().open("minifiedHTML.html");
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+            StringBuilder stringBuilder = new StringBuilder();
+
+            for (String string; (string = in.readLine()) != null; )
+                stringBuilder.append(string);
+
+            in.close();
+            String minifiedHTML = stringBuilder.toString();
+            _scoreUI.loadData(minifiedHTML, "text/html", null);
+            WebSettings scoreUISettings = _scoreUI.getSettings();
+            scoreUISettings.setJavaScriptEnabled(true);
+            scoreUISettings.setBuiltInZoomControls(true);
+            scoreUISettings.setDisplayZoomControls(false);
+
+            if (BuildConfig.DEBUG)
+                WebView.setWebContentsDebuggingEnabled(true);
+        }
+        catch (IOException e)
+        {
+            Log.e(APPLICATION_TAG, e.getMessage());
+            _recordButton.setVisibility(View.INVISIBLE);
+            new AlertDialog.Builder(this).setTitle("Error").setMessage(
+                    "An issue was encountered displaying the Music Sheet. Please " +
+                    "quit and restart the application to continue. If this issue " +
+                    "persists, please submit a report to https://github.com/colematthew4/Vivace/issues/new " +
+                    "and describe your issue in detail.").setPositiveButton("Ok", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
+                {
+                    dialog.dismiss();
+                }
+            }).create().show();
+        }
+    }
 }

@@ -1,4 +1,4 @@
-package cole.matthew.vivace;
+package cole.matthew.vivace.Helpers;
 
 import android.Manifest;
 import android.app.Activity;
@@ -10,6 +10,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import cole.matthew.vivace.MainActivity;
+import cole.matthew.vivace.R;
+
 public abstract class VivacePermissions
 {
     /**
@@ -17,12 +20,12 @@ public abstract class VivacePermissions
      *
      * @param activity The activity to request the permissions for.
      */
-    public static void RequestAllPermissions(Activity activity)
+    public static void requestAllPermissions(Activity activity)
     {
-        RequestPermission(activity, VivacePermissionCodes.RECORD_AUDIO);
-        RequestPermission(activity, VivacePermissionCodes.INTERNET);
-        RequestPermission(activity, VivacePermissionCodes.READ_EXTERNAL_STORAGE);
-        RequestPermission(activity, VivacePermissionCodes.WRITE_EXTERNAL_STORAGE);
+        requestPermission(activity, VivacePermissionCodes.RECORD_AUDIO);
+        requestPermission(activity, VivacePermissionCodes.INTERNET);
+        requestPermission(activity, VivacePermissionCodes.READ_EXTERNAL_STORAGE);
+        requestPermission(activity, VivacePermissionCodes.WRITE_EXTERNAL_STORAGE);
     }
 
     /**
@@ -33,7 +36,7 @@ public abstract class VivacePermissions
      *
      * @return true if the permission has been granted, false if not.
      */
-    public static boolean HasPermission(Context context, String permission)
+    public static boolean hasPermission(Context context, String permission)
     {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
     }
@@ -48,47 +51,47 @@ public abstract class VivacePermissions
      *
      * @return true if the activity has been given the requested permission, false if not.
      */
-    public static boolean RequestPermission(Activity activity, int permissionCode)
+    public static boolean requestPermission(Activity activity, int permissionCode)
     {
         boolean result = true;
 
         switch (permissionCode)
         {
             case VivacePermissionCodes.RECORD_AUDIO:
-                if (!HasPermission(activity, Manifest.permission.RECORD_AUDIO))
+                if (!hasPermission(activity, Manifest.permission.RECORD_AUDIO))
                 {
-                    RequestPermission(activity, Manifest.permission.RECORD_AUDIO, permissionCode, R.string.audio_permissions_explanation);
-                    result = HasPermission(activity, Manifest.permission.RECORD_AUDIO);
+                    requestPermission(activity, Manifest.permission.RECORD_AUDIO, permissionCode, R.string.audio_permissions_explanation);
+                    result = hasPermission(activity, Manifest.permission.RECORD_AUDIO);
                 }
                 else        // permission is already granted
                     Log.d(MainActivity.APPLICATION_TAG, "Audio Recording permission granted.");
 
                 break;
             case VivacePermissionCodes.INTERNET:
-                if (!HasPermission(activity, Manifest.permission.INTERNET))
+                if (!hasPermission(activity, Manifest.permission.INTERNET))
                 {
-                    RequestPermission(activity, Manifest.permission.INTERNET, permissionCode, R.string.internet_permissions_explanation);
-                    result = HasPermission(activity, Manifest.permission.INTERNET);
+                    requestPermission(activity, Manifest.permission.INTERNET, permissionCode, R.string.internet_permissions_explanation);
+                    result = hasPermission(activity, Manifest.permission.INTERNET);
                 }
                 else        // permission is already granted
                     Log.d(MainActivity.APPLICATION_TAG, "Internet permission granted.");
 
                 break;
             case VivacePermissionCodes.READ_EXTERNAL_STORAGE:
-                if (!HasPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE))
+                if (!hasPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE))
                 {
-                    RequestPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE, permissionCode, R.string.external_storage_permissions_explanation);
-                    result = HasPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
+                    requestPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE, permissionCode, R.string.external_storage_permissions_explanation);
+                    result = hasPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
                 }
                 else        // permission is already granted
                     Log.d(MainActivity.APPLICATION_TAG, "Read External Storage permission granted.");
 
                 break;
             case VivacePermissionCodes.WRITE_EXTERNAL_STORAGE:
-                if (!HasPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+                if (!hasPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE))
                 {
-                    RequestPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE, permissionCode, R.string.external_storage_permissions_explanation);
-                    result = HasPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                    requestPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE, permissionCode, R.string.external_storage_permissions_explanation);
+                    result = hasPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
                 }
                 else        // permission is already granted
                     Log.d(MainActivity.APPLICATION_TAG, "Write External Storage permission granted.");
@@ -113,7 +116,7 @@ public abstract class VivacePermissions
      * @param explanationID The ID of the string resource to show if {@link ActivityCompat#shouldShowRequestPermissionRationale(Activity, String)}
      *                      returns true.
      */
-    private static void RequestPermission(Activity activity, String permission, int permissionCode, @StringRes int explanationID)
+    private static void requestPermission(Activity activity, String permission, int permissionCode, @StringRes int explanationID)
     {
         // Show an explanation to the user *asynchronously* -- don't block this thread waiting
         // for the user's response! After the user sees the explanation, try again to request

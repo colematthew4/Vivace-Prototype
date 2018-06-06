@@ -29,17 +29,19 @@
 			android:gravity="center_vertical"
 			android:layout_marginStart="20dp"
 			android:layout_marginEnd="10dp"
+			android:layout_marginTop="1dp"
+			android:layout_marginBottom="1dp"
 			android:paddingStart="5dp"
 			android:paddingEnd="5dp"
 			android:textSize="18sp"
 			android:clickable="true"
 			android:focusable="true"
-			android:background="@drawable/border" />
+			android:background="@drawable/options_layout_button" />
 		<ImageView
 			android:layout_width="30dp"
 			android:layout_height="match_parent"
 			android:layout_marginStart="10dp"
-			android:src="@drawable/tempo_marker"
+			android:src="@drawable/tempo_marker_short"
 			android:contentDescription="@string/tempo_contentDesc" />
 		<TextView
 			android:id="@+id/tempo"
@@ -47,14 +49,16 @@
 			android:layout_height="match_parent"
 			android:layout_weight="1"
 			android:gravity="center_vertical"
-			android:layout_marginStart="-16dp"
+			android:layout_marginStart="-8dp"
 			android:layout_marginEnd="20dp"
+			android:layout_marginTop="1dp"
+			android:layout_marginBottom="1dp"
 			android:paddingStart="5dp"
 			android:paddingEnd="5dp"
 			android:textSize="18sp"
 			android:clickable="true"
 			android:focusable="true"
-			android:background="@drawable/border" />
+			android:background="@drawable/options_layout_button" />
 	</LinearLayout>
 	<WebView
 		android:id="@+id/scoreUI"
