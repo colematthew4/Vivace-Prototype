@@ -53,8 +53,10 @@ public class VexFlowScriptGenerator
             else if (note.getPitch().contains("#"))
                 stringBuilder.append(".addAccidental(0, new Vex.Flow.Accidental('#'))");
 
-            while (note.getDurationVexFlowString().contains("d"))
+            if (note.getDurationVexFlowString().matches(".d"))
                 stringBuilder.append(".addDotToAll()");
+            else if (note.getDurationVexFlowString().matches(".dd"))
+                stringBuilder.append(".addDotToAll().addDotToAll()");
 
             if (index < measure.getNotes().size() - 1)
                 stringBuilder.append(", ");

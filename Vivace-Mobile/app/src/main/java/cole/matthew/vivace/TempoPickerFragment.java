@@ -95,7 +95,8 @@ public class TempoPickerFragment extends DialogFragment
             @Override
             public void onScrollStateChange(NumberPicker view, int scrollState)
             {
-                _tempo = view.getValue();
+                if (scrollState == SCROLL_STATE_IDLE)
+                    _tempo = view.getValue();
             }
         });
 
