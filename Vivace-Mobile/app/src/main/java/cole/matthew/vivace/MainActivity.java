@@ -12,6 +12,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +22,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ImageButton;
@@ -33,33 +35,32 @@ import org.apache.commons.math3.transform.FastFourierTransformer;
 import org.apache.commons.math3.transform.TransformType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jfugue.integration.MusicXmlParserListener;
 import org.jfugue.pattern.Pattern;
-import org.staccato.StaccatoParser;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
-import cole.matthew.vivace.Exceptions.StorageNotReadableException;
 import cole.matthew.vivace.Helpers.DFT;
-import cole.matthew.vivace.Helpers.FileStore;
+import cole.matthew.vivace.Helpers.VexFlowScriptGenerator;
 import cole.matthew.vivace.Helpers.VivacePermissionCodes;
 import cole.matthew.vivace.Helpers.VivacePermissions;
+import cole.matthew.vivace.Models.Measure;
+import cole.matthew.vivace.Models.Note;
+import cole.matthew.vivace.Models.ScorePartWise;
 import cole.matthew.vivace.Models.TimeSignature;
-import nu.xom.Serializer;
 
 public class MainActivity extends AppCompatActivity
         implements TempoPickerFragment.NoticeTempoDialogListener,
                    TimeSignaturePickerFragment.NoticeTimeSignDialogListener,
-                   ToolbarFragment.OnFragmentInteractionListener
+                   ToolbarFragment.OnFragmentInteractionListener,
+                   ScorePartWise.OnNewMeasureListener
 {
     public static final String APPLICATION_TAG = "Vivace_Tag";
-    public final String IS_RECORDING_TAG = "IsRecording_Tag";
+//    public final String IS_RECORDING_TAG = "IsRecording_Tag";
     public final String TIME_SIGNATURE_TAG = "TimeSignature_Tag";
     public final String BPM_TAG = "BPM_Tag";
     public final String STARTTIME_TAG = "StartTime_Tag";
@@ -74,30 +75,31 @@ public class MainActivity extends AppCompatActivity
     private ImageButton _stopButton;
 
     public static Pattern _score;
+    public static ScorePartWise _scorePartWise;
     public static volatile boolean IsRecording;
     private TimeSignature _timeSignature;
     private int _bpm;
     private long startTime;
     private File tempFile;      // used to handle temporary recording storage for sharing files
-//    private Handler timerHandler = new Handler();
-//    private Runnable timerRunnable = new Runnable()
-//    {
-//        /**
-//         * <p>This provides the functionality of Vivace's recording timer.</p><br/>
-//         * {@inheritDoc}
-//         */
-//        @SuppressLint("DefaultLocale")
-//        @Override
-//        public void run()
-//        {
-//            long millis = System.currentTimeMillis() - startTime;
-//            int seconds = (int)(millis / 1000) % 60;
-//            int minutes = seconds / 60;
-//            _recordingTimer.setText(String.format("%02d:%02d", minutes, seconds));
-//
-//            timerHandler.postDelayed(this, 500);
-//        }
-//    };
+    private Handler timerHandler = new Handler();
+    private Runnable timerRunnable = new Runnable()
+    {
+        /**
+         * <p>This provides the functionality of Vivace's recording timer.</p><br/>
+         * {@inheritDoc}
+         */
+        @SuppressLint("DefaultLocale")
+        @Override
+        public void run()
+        {
+            long millis = System.currentTimeMillis() - startTime;
+            int seconds = (int)(millis / 1000) % 60;
+            int minutes = seconds / 60;
+            _recordingTimer.setText(String.format("%02d:%02d", minutes, seconds));
+
+            timerHandler.postDelayed(this, 500);
+        }
+    };
 
     /** {@inheritDoc} */
     @SuppressLint("DefaultLocale")
@@ -111,11 +113,12 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        IsRecording = preferences.getBoolean(IS_RECORDING_TAG, false);
+        //IsRecording = preferences.getBoolean(IS_RECORDING_TAG, false);
         _timeSignature = new TimeSignature(preferences.getString(TIME_SIGNATURE_TAG, "4/4"));
         _bpm = preferences.getInt(BPM_TAG, 120);
         startTime = preferences.getLong(STARTTIME_TAG, 0);
         _score = new Pattern().setTempo(_bpm);
+        _scorePartWise = ScorePartWise.createInstance(this, _timeSignature, _bpm);
 
         _tempoTextView = findViewById(R.id.tempo);
         _tempoTextView.setText(String.format("%d BPM", _bpm));
@@ -160,31 +163,11 @@ public class MainActivity extends AppCompatActivity
                 _recordButton.setVisibility(View.GONE);
                 _playbackLayout.setVisibility(View.VISIBLE);
 
-//                String javaScript = "(function() { VF = Vex.Flow; let div = document.getElementById(\"boo\"); let renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG); renderer.resize(500,500); let context = renderer.getContext(); context.setFont(\"Arial\", 10, \"\").setBackgroundFillStyle(\"#eed\"); let stave = new VF.Stave(10, 40, 40); stave.addClef(\"treble\").addTimeSignature(\"4/4\"); stave.setContext(context).draw(); return \"test\"; })();";
-                String javaScript = "(function() {" +
-                                        "let VF = Vex.Flow;" +
-                                        "let vf = new VF.Factory({" +
-                                            "renderer: { elementId: 'boo', width: 550, height: 300 }" +
-                                        "});" +
-                                        "let score = vf.EasyScore();" +
-                                        "let system = vf.System();" +
-                                        "system.addStave({" +
-                                            "voices: [" +
-                                                "score.voice(score.notes('C#5/q, B4, A4, G#4', {stem: 'up'}))," +
-                                                "score.voice(score.notes('C#4/h, C#4', {stem: 'down'}))" +
-                                            "]" +
-                                        "}).addClef('treble').addTimeSignature('4/4');" +
-                                        "system.addStave({" +
-                                            "voices: [" +
-                                                "score.voice(score.notes('C4/q, B4, Eb5, G5'))" +
-                                            "]" +
-                                        "}).addClef('treble').addTimeSignature('4/4');" +
-                                        "vf.draw();" +
-                                    "})();";
-                _scoreUI.evaluateJavascript(javaScript, null);
-
                 if (VivacePermissions.requestPermission((Activity)v.getContext(), VivacePermissionCodes.RECORD_AUDIO))
+                {
+                    startTime = System.currentTimeMillis();
                     analyzeAudio();
+                }
             }
         });
 
@@ -197,12 +180,13 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                _recordButton.setVisibility(View.VISIBLE);
-                _playbackLayout.setVisibility(View.GONE);
-
-                IsRecording = false;
-                //timerHandler.removeCallbacks(timerRunnable);
-                startTime = 0;
+                if (IsRecording)
+                {
+                    IsRecording = false;
+                    timerHandler.removeCallbacks(timerRunnable);
+                }
+                else
+                    analyzeAudio();
             }
         });
 
@@ -217,8 +201,17 @@ public class MainActivity extends AppCompatActivity
                 _playbackLayout.setVisibility(View.GONE);
 
                 IsRecording = false;
-                //timerHandler.removeCallbacks(timerRunnable);
+                timerHandler.removeCallbacks(timerRunnable);
                 startTime = 0;
+                _scorePartWise.clear();
+                _scoreUI.evaluateJavascript(VexFlowScriptGenerator.getInstance().clearScore(), new ValueCallback<String>()
+                {
+                    @Override
+                    public void onReceiveValue(String value)
+                    {
+                        Log.d(APPLICATION_TAG, "StopButton OnClickListener: Cleared WebView score.");
+                    }
+                });
             }
         });
 
@@ -232,9 +225,9 @@ public class MainActivity extends AppCompatActivity
         Log.d(APPLICATION_TAG, "MainActivity - OnPause");
         super.onPause();
 
-//        timerHandler.removeCallbacks(timerRunnable);
+        timerHandler.removeCallbacks(timerRunnable);
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-        editor.putBoolean(IS_RECORDING_TAG, IsRecording);
+//        editor.putBoolean(IS_RECORDING_TAG, IsRecording);
         editor.putString(TIME_SIGNATURE_TAG, _timeSignature.toString());
         editor.putInt(BPM_TAG, _bpm);
         editor.putLong(STARTTIME_TAG, startTime);
@@ -290,52 +283,57 @@ public class MainActivity extends AppCompatActivity
 //
 //                break;
             case R.id.action_share:
-                try
-                {
-                    FileStore fileStore = new FileStore(this);
-                    tempFile = new File(fileStore.getPrivateStorageDir(), "music.xml");
-                    FileOutputStream file = new FileOutputStream(tempFile);
-//                    FileOutputStream file = openFileOutput("music.xml", MODE_PRIVATE);
-//                    MusicXmlRenderer renderer = new MusicXmlRenderer();
-//                    MusicStringParser parser = new MusicStringParser();
-//                    parser.addParserListener(renderer);
-//                    parser.parse(_score);
-                    MusicXmlParserListener renderer = new MusicXmlParserListener();
-                    StaccatoParser parser = new StaccatoParser();
-                    parser.addParserListener(renderer);
-                    parser.parse(_score);
-
-                    Serializer serializer = new Serializer(file, "UTF-8");
-                    serializer.setIndent(4);
-                    serializer.write(renderer.getMusicXMLDoc());
-
-                    file.flush();
-                    file.close();
-
-                    Intent shareIntent = new Intent()
-                            .setAction(Intent.ACTION_SEND).setType("text/xml")
-                            .putExtra(Intent.EXTRA_EMAIL, "Hello World")
-                            .putExtra(Intent.EXTRA_STREAM, Uri.fromFile(tempFile))
-                            .putExtra(Intent.EXTRA_TEXT, "Sharing a file...")
-                            .putExtra(Intent.EXTRA_SUBJECT, "Subject");
-                    startActivityForResult(Intent.createChooser(shareIntent, "Share Your Recording"), 3461);
-                }
-                catch (IOException | StorageNotReadableException e)
-                {
-                    new AlertDialog.Builder(this)
-                            .setTitle("Error Encountered")
-                            .setMessage("Vivace was unable to share your recording.")
-                            .setPositiveButton("Ok", new DialogInterface.OnClickListener()
-                            {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which)
-                                {
-                                    dialog.dismiss();
-                                }
-                            }).create().show();
-                }
-
-                break;
+//                try
+//                {
+//                    FileStore fileStore = new FileStore(this);
+//                    tempFile = new File(fileStore.getPrivateStorageDir(), "music.xml");
+//                    FileOutputStream file = new FileOutputStream(tempFile);
+////                    FileOutputStream file = openFileOutput("music.xml", MODE_PRIVATE);
+////                    MusicXmlRenderer renderer = new MusicXmlRenderer();
+////                    MusicStringParser parser = new MusicStringParser();
+////                    parser.addParserListener(renderer);
+////                    parser.parse(_score);
+//                    _score = new Pattern(_scorePartWise.toJFuguePatternString()).setVoice(0).setInstrument("Piano");
+//                    MidiParser parser = new MidiParser();
+//
+//
+////                    MusicXmlParserListener renderer = new MusicXmlParserListener();
+////                    StaccatoParser parser = new StaccatoParser();
+////                    parser.addParserListener(renderer);
+////                    parser.parse(_score);
+////                    Log.d(APPLICATION_TAG, renderer.getMusicXMLString());
+//
+////                    Serializer serializer = new Serializer(file, "UTF-8");
+////                    serializer.setIndent(4);
+////                    serializer.write(renderer.getMusicXMLDoc());
+//
+//                    file.flush();
+//                    file.close();
+//
+//                    Intent shareIntent = new Intent()
+//                            .setAction(Intent.ACTION_SEND).setType("text/xml")
+//                            .putExtra(Intent.EXTRA_EMAIL, "Hello World")
+//                            .putExtra(Intent.EXTRA_STREAM, Uri.fromFile(tempFile))
+//                            .putExtra(Intent.EXTRA_TEXT, "Sharing a file...")
+//                            .putExtra(Intent.EXTRA_SUBJECT, "Subject");
+//                    startActivityForResult(Intent.createChooser(shareIntent, "Share Your Recording"), 3461);
+//                }
+//                catch (IOException | StorageNotReadableException e)
+//                {
+//                    new AlertDialog.Builder(this)
+//                            .setTitle("Error Encountered")
+//                            .setMessage("Vivace was unable to share your recording.")
+//                            .setPositiveButton("Ok", new DialogInterface.OnClickListener()
+//                            {
+//                                @Override
+//                                public void onClick(DialogInterface dialog, int which)
+//                                {
+//                                    dialog.dismiss();
+//                                }
+//                            }).create().show();
+//                }
+//
+//                break;
             default:
                 result = super.onOptionsItemSelected(item);
                 break;
@@ -466,12 +464,42 @@ public class MainActivity extends AppCompatActivity
     public void onFragmentInteraction(Uri uri)
     { }
 
+    /** {@inheritDoc} */
+    @Override
+    public void onNewMeasure(Measure measure)
+    {
+        try
+        {
+            Log.d(APPLICATION_TAG, "onNewMeasure: Getting script to display notes.");
+            final String script = VexFlowScriptGenerator.getInstance().addMeasureStave(measure);
+            _scoreUI.getHandler().post(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    _scoreUI.evaluateJavascript(script, new ValueCallback<String>()
+                    {
+                        @Override
+                        public void onReceiveValue(String value)
+                        {
+                            Log.d(APPLICATION_TAG, String.format("onNewMeasure: %s", value));
+                        }
+                    });
+                }
+            });
+        }
+        catch (NullPointerException e)
+        {
+            Log.e(APPLICATION_TAG, String.format("onNewMeasure: %s", e.getMessage()));
+        }
+    }
+
     private void analyzeAudio()
     {
         if (!IsRecording)
         {
-            startTime = System.currentTimeMillis();
-            //timerHandler.postDelayed(timerRunnable, 0);
+//            startTime = System.currentTimeMillis();
+            timerHandler.postDelayed(timerRunnable, 0);
 
             Thread thread = new Thread(new Runnable()
             {
@@ -528,32 +556,38 @@ public class MainActivity extends AppCompatActivity
                         HashMap<String, Float> keys = DFT.process(results, sampleSize, resultC.length, 7);
                         if (keys.keySet().isEmpty())
                         {
-                            _recordingTimer.post(new Runnable()
-                            {
-                                /** {@inheritDoc} */
-                                @Override
-                                public void run()
-                                {
-                                    _recordingTimer.setText("");
-                                }
-                            });
+                            Log.d(TAG, "Found: Rest");
+                            _scorePartWise.addNote(new Note("B4", 0.25, true));
+//                            _recordingTimer.post(new Runnable()
+//                            {
+//                                /** {@inheritDoc} */
+//                                @Override
+//                                public void run()
+//                                {
+//                                    _recordingTimer.setText("");
+//                                }
+//                            });
                         }
                         else
                         {
-                            for (final String note : keys.keySet())
-                            {
-                                Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note, keys.get(note)));
-                                _score.add(String.format("%ss ", note));
-                                _recordingTimer.post(new Runnable()
-                                {
-                                    /** {@inheritDoc} */
-                                    @Override
-                                    public void run()
-                                    {
-                                        _recordingTimer.setText(note);
-                                    }
-                                });
-                            }
+                            Log.d(TAG, String.format("Found: %s.", keys.toString()));
+                            //_scorePartWise.addNote(keys.keySet(), 0.25);
+                            String pitch = (String)keys.keySet().toArray()[0];
+                            _scorePartWise.addNote(new Note(pitch, 0.25));
+//                            for (final String note : keys.keySet())
+//                            {
+//                                Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note, keys.get(note)));
+//                                _scorePartWise.addNote(new Note(note, 0.25));
+////                                _recordingTimer.post(new Runnable()
+////                                {
+////                                    /** {@inheritDoc} */
+////                                    @Override
+////                                    public void run()
+////                                    {
+////                                        _recordingTimer.setText(note);
+////                                    }
+////                                });
+//                            }
                         }
                     }
 
@@ -591,8 +625,7 @@ public class MainActivity extends AppCompatActivity
         else
         {
             IsRecording = false;
-            //timerHandler.removeCallbacks(timerRunnable);
-            startTime = 0;
+            timerHandler.removeCallbacks(timerRunnable);
         }
     }
 

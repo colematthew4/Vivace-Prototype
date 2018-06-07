@@ -7,7 +7,7 @@ import java.util.HashMap;
 public class DFT
 {
     /** A list of human-readable musical notes. */
-    private static String[] notes = { "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#" };
+    private static String[] notes = { "A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#" };
 
     /**
      * Processes which musical pitches have been picked up by the microphone.
@@ -49,7 +49,10 @@ public class DFT
                 if (maxF != -1)
                 {
                     float freq = maxF * sampleRate / numSamples;
-                    found.put(closestKey(freq), freq);
+                    String closestKey = closestKey(freq);
+                    if (closestKey != null)
+                        found.put(closestKey, freq);
+
                     max = Integer.MIN_VALUE;
                     maxF = -1;
                 }
