@@ -72,7 +72,7 @@ public class FileStore
         if (!isExternalStorageReadable())
             throw new StorageNotReadableException("Vivace requires your permission to save recordings to your device.");
 
-        File storageDir = Environment.getExternalStoragePublicDirectory(null);
+        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
         if (!storageDir.exists() && !storageDir.mkdirs())
             Log.e(TAG, "Directory not created.");
 
@@ -114,10 +114,69 @@ public class FileStore
      * way if Vivace is uninstalled the files it saved will remain on the device.
      */
     public void transferStorageToPublic()
-            throws StorageNotReadableException
+            throws InsufficientStorageException, StorageNotReadableException
     {
         File publicStorageDir = getPublicStorageDir();
         File privateStorageDir = getPrivateStorageDir();
+
+        if (publicStorageDir.getFreeSpace() > 0.1 * publicStorageDir.getTotalSpace())
+        {
+            //            new AsyncTask<Object, Object, Object>()
+            //            {
+            //                @Override
+            //                protected Object doInBackground(Object[] objects)
+            //                {
+            //                    for (File file : publicStorageDir.listFiles())
+            //                    {
+            //                        try
+            //                        {
+            //                            InputStream inputStream = new FileInputStream(file);
+            //                            OutputStream outputStream = new FileOutputStream(privateStorageDir);
+            //
+            //                            byte[] buf = new byte[1024];
+            //                            int length;
+            //
+            //                            while ((length = inputStream.read(buf)) > 0)
+            //                                outputStream.write(buf, 0, length);
+            //
+            //                            inputStream.close();
+            //                            outputStream.close();
+            //                        }
+            //                        catch (java.io.IOException e)
+            //                        {
+            //                            Log.e(TAG, e.getMessage());
+            //                        }
+            //                    }
+            //
+            //                    return null;
+            //                }
+            //            };
+            for (File file : privateStorageDir.listFiles())
+            {
+                try
+                {
+                    InputStream inputStream = new FileInputStream(file);
+                    OutputStream outputStream = new FileOutputStream(new File(publicStorageDir, file.getName()));
+
+                    byte[] buf = new byte[1024];
+                    int length;
+
+                    while ((length = inputStream.read(buf)) > 0)
+                        outputStream.write(buf, 0, length);
+
+                    inputStream.close();
+                    outputStream.close();
+                    file.delete();
+                }
+                catch (java.io.IOException e)
+                {
+                    Log.e(TAG, e.getMessage());
+                }
+            }
+        }
+        else
+            throw new InsufficientStorageException("You do not have enough storage space to transfer " +
+                                                   "files from public to private storage.");
     }
 
     /**
@@ -130,7 +189,7 @@ public class FileStore
         final File publicStorageDir = getPublicStorageDir();
         final File privateStorageDir = getPrivateStorageDir();
 
-        if (privateStorageDir.getFreeSpace() > 0.9 * privateStorageDir.getTotalSpace())
+        if (privateStorageDir.getFreeSpace() > 0.1 * privateStorageDir.getTotalSpace())
         {
 //            new AsyncTask<Object, Object, Object>()
 //            {
@@ -167,7 +226,7 @@ public class FileStore
                 try
                 {
                     InputStream inputStream = new FileInputStream(file);
-                    OutputStream outputStream = new FileOutputStream(privateStorageDir);
+                    OutputStream outputStream = new FileOutputStream(new File(privateStorageDir, file.getName()));
 
                     byte[] buf = new byte[1024];
                     int length;
@@ -177,6 +236,7 @@ public class FileStore
 
                     inputStream.close();
                     outputStream.close();
+                    file.delete();
                 }
                 catch (java.io.IOException e)
                 {

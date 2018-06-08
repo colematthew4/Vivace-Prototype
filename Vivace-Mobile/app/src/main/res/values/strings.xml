@@ -50,9 +50,9 @@ b}},{key:"EasyScore",value:function(){var a=arguments.length&lt;=0||void 0===arg
 	<!-- Vivace Settings -->
 	<string name="pref_title_file_name">Default Recording Filename</string>
 	<string name="pref_title_file_type">Recording File Type</string>
-	<string name="pref_default_file_name">recording_1</string>
+	<string name="pref_default_file_name">recording</string>
 	<string-array name="pref_file_types">
-		<item>MusicXML (.mxl)</item>
+		<item>MusicXML (.xml)</item>
 		<item>MP3 (.mp3)</item>
 		<item>WAV (.wav)</item>
 		<item>MIDI (.midi)</item>

@@ -2,6 +2,7 @@ package cole.matthew.vivace;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -28,6 +29,7 @@ import android.webkit.WebView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.transform.DftNormalization;
@@ -35,16 +37,23 @@ import org.apache.commons.math3.transform.FastFourierTransformer;
 import org.apache.commons.math3.transform.TransformType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jfugue.pattern.Pattern;
+import org.jfugue.Instrument;
+import org.jfugue.MusicStringParser;
+import org.jfugue.MusicXmlRenderer;
+import org.jfugue.Pattern;
+import org.jfugue.Tempo;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
+import cole.matthew.vivace.Exceptions.StorageNotReadableException;
 import cole.matthew.vivace.Helpers.DFT;
+import cole.matthew.vivace.Helpers.FileStore;
 import cole.matthew.vivace.Helpers.VexFlowScriptGenerator;
 import cole.matthew.vivace.Helpers.VivacePermissionCodes;
 import cole.matthew.vivace.Helpers.VivacePermissions;
@@ -52,6 +61,7 @@ import cole.matthew.vivace.Models.Measure;
 import cole.matthew.vivace.Models.Note;
 import cole.matthew.vivace.Models.ScorePartWise;
 import cole.matthew.vivace.Models.TimeSignature;
+import nu.xom.Serializer;
 
 public class MainActivity extends AppCompatActivity
         implements TempoPickerFragment.NoticeTempoDialogListener,
@@ -60,7 +70,7 @@ public class MainActivity extends AppCompatActivity
                    ScorePartWise.OnNewMeasureListener
 {
     public static final String APPLICATION_TAG = "Vivace_Tag";
-//    public final String IS_RECORDING_TAG = "IsRecording_Tag";
+    public final String IS_RECORDING_TAG = "IsRecording_Tag";
     public final String TIME_SIGNATURE_TAG = "TimeSignature_Tag";
     public final String BPM_TAG = "BPM_Tag";
     public final String STARTTIME_TAG = "StartTime_Tag";
@@ -106,18 +116,21 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        Log.d(APPLICATION_TAG, "MainActivity - onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ToolbarFragment toolbarFragment = (ToolbarFragment)getSupportFragmentManager().findFragmentById(R.id.toolbarFragment);
         Toolbar toolbar = (Toolbar)toolbarFragment.getView();
         setSupportActionBar(toolbar);
 
+        if (savedInstanceState != null)
+            IsRecording = savedInstanceState.getBoolean(IS_RECORDING_TAG, false);
+
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        //IsRecording = preferences.getBoolean(IS_RECORDING_TAG, false);
         _timeSignature = new TimeSignature(preferences.getString(TIME_SIGNATURE_TAG, "4/4"));
         _bpm = preferences.getInt(BPM_TAG, 120);
         startTime = preferences.getLong(STARTTIME_TAG, 0);
-        _score = new Pattern().setTempo(_bpm);
+//        _score = new Pattern();
         _scorePartWise = ScorePartWise.createInstance(this, _timeSignature, _bpm);
 
         _tempoTextView = findViewById(R.id.tempo);
@@ -182,11 +195,15 @@ public class MainActivity extends AppCompatActivity
             {
                 if (IsRecording)
                 {
+                    _pauseButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_arrow_white_24dp, null));
                     IsRecording = false;
                     timerHandler.removeCallbacks(timerRunnable);
                 }
                 else
+                {
+                    _pauseButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause_white_24dp, null));
                     analyzeAudio();
+                }
             }
         });
 
@@ -197,22 +214,117 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                _recordButton.setVisibility(View.VISIBLE);
-                _playbackLayout.setVisibility(View.GONE);
-
+                final Context context = v.getContext();
                 IsRecording = false;
                 timerHandler.removeCallbacks(timerRunnable);
-                startTime = 0;
-                _scorePartWise.clear();
-                _scoreUI.evaluateJavascript(VexFlowScriptGenerator.getInstance().clearScore(), new ValueCallback<String>()
-                {
-                    @Override
-                    public void onReceiveValue(String value)
-                    {
-                        Log.d(APPLICATION_TAG, "StopButton OnClickListener: Cleared WebView score.");
-                    }
-                });
-            }
+
+                new AlertDialog.Builder(v.getContext())
+                        .setTitle("Save")
+                        .setMessage("Do you wish to save this recording?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+                                final String filename = sharedPreferences.getString(SettingsActivity.KEY_FILE_STORAGE_NAME, "recording_");
+                                final boolean usePublicStorage = sharedPreferences.getBoolean(SettingsActivity.KEY_FILE_STORAGE_LOCATION, false);
+                                int fileExtIndex = Integer.valueOf(sharedPreferences.getString(SettingsActivity.KEY_FILE_STORAGE_TYPE, "-1")) + 1;
+                                String[] fileExts = getResources().getStringArray(R.array.pref_file_types);
+                                final String fileExt = fileExts[fileExtIndex].split("\\(")[1].replace(")", "");
+                                final FileStore fileStore = new FileStore((Activity)context);
+
+                                new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        try
+                                        {
+                                            if (fileStore.isExternalStorageWritable())
+                                            {
+                                                File storageLocation = usePublicStorage ? fileStore.getPublicStorageDir() : fileStore.getPrivateStorageDir();
+                                                if (!storageLocation.exists())
+                                                    throw new StorageNotReadableException("Couldn't gain access to your external storage.");
+
+                                                tempFile = new File(storageLocation, String.format("%s_%d%s", filename, storageLocation.listFiles().length + 1, fileExt));
+                                                FileOutputStream file = new FileOutputStream(tempFile);
+                                                _score = new Pattern();
+                                                _score.addElement(new Tempo(_bpm));
+                                                _score.addElement(new Instrument(Instrument.PIANO));
+                                                _score.add(_scorePartWise.toJFuguePatternString());
+                                                MusicXmlRenderer renderer = new MusicXmlRenderer();
+                                                MusicStringParser parser = new MusicStringParser();
+                                                parser.addParserListener(renderer);
+                                                parser.parse(_score);
+
+                                                Serializer serializer = new Serializer(file, "UTF-8");
+                                                serializer.setIndent(4);
+                                                serializer.write(renderer.getMusicXMLDoc());
+
+                                                file.flush();
+                                                file.close();
+                                                Toast.makeText(context, String.format("Saved as %s", tempFile.getName()), Toast.LENGTH_LONG).show();
+                                                tempFile = null;
+                                            }
+                                        }
+                                        catch (IOException | StorageNotReadableException e)
+                                        {
+                                            new AlertDialog.Builder(context)
+                                                    .setTitle("Failed to Save Recording")
+                                                    .setMessage(e.getMessage())
+                                                    .setPositiveButton("Ok", new DialogInterface.OnClickListener()
+                                                    {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which)
+                                                        {
+                                                            dialog.dismiss();
+                                                        }
+                                                    }).create().show();
+                                        }
+                                    }
+                                }.run();
+
+                                _recordButton.setVisibility(View.VISIBLE);
+                                _playbackLayout.setVisibility(View.GONE);
+
+                                startTime = 0;
+                                _scorePartWise.clear();
+                                _scoreUI.evaluateJavascript(VexFlowScriptGenerator.getInstance().clearScore(), new ValueCallback<String>()
+                                {
+                                    @Override
+                                    public void onReceiveValue(String value)
+                                    {
+                                        Log.d(APPLICATION_TAG, "StopButton OnClickListener: Cleared WebView score.");
+                                    }
+                                });
+
+                                dialog.dismiss();
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                _recordButton.setVisibility(View.VISIBLE);
+                                _playbackLayout.setVisibility(View.GONE);
+
+                                startTime = 0;
+                                _scorePartWise.clear();
+                                _scoreUI.evaluateJavascript(VexFlowScriptGenerator.getInstance().clearScore(), new ValueCallback<String>()
+                                {
+                                    @Override
+                                    public void onReceiveValue(String value)
+                                    {
+                                        Log.d(APPLICATION_TAG, "StopButton OnClickListener: Cleared WebView score.");
+                                    }
+                                });
+
+                                dialog.cancel();
+                            }
+                        }).create().show();
+                }
         });
 
         initializeWebView();
@@ -227,7 +339,6 @@ public class MainActivity extends AppCompatActivity
 
         timerHandler.removeCallbacks(timerRunnable);
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-//        editor.putBoolean(IS_RECORDING_TAG, IsRecording);
         editor.putString(TIME_SIGNATURE_TAG, _timeSignature.toString());
         editor.putInt(BPM_TAG, _bpm);
         editor.putLong(STARTTIME_TAG, startTime);
@@ -242,18 +353,15 @@ public class MainActivity extends AppCompatActivity
         super.onConfigurationChanged(newConfig);
     }
 
-//    /** {@inheritDoc} */
-//    @Override
-//    protected void onSaveInstanceState(Bundle outState)
-//    {
-//        Log.d(APPLICATION_TAG, "MainActivity - OnSaveInstanceState");
-//
-//        super.onSaveInstanceState(outState);
-//        outState.putBoolean(IS_RECORDING_TAG, IsRecording);
-//        outState.putString(TIME_SIGNATURE_TAG, _timeSignature);
-//        outState.putInt(BPM_TAG, _bpm);
-//        outState.putLong(STARTTIME_TAG, startTime);
-//    }
+    /** {@inheritDoc} */
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        Log.d(APPLICATION_TAG, "MainActivity - OnSaveInstanceState");
+
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(IS_RECORDING_TAG, IsRecording);
+    }
 
     /** {@inheritDoc} */
     @Override
@@ -279,61 +387,58 @@ public class MainActivity extends AppCompatActivity
                 startActivity(new Intent(this, SettingsActivity.class));
 
                 break;
-//            case R.id.action_search:
-//
-//                break;
             case R.id.action_share:
-//                try
-//                {
-//                    FileStore fileStore = new FileStore(this);
-//                    tempFile = new File(fileStore.getPrivateStorageDir(), "music.xml");
-//                    FileOutputStream file = new FileOutputStream(tempFile);
-////                    FileOutputStream file = openFileOutput("music.xml", MODE_PRIVATE);
-////                    MusicXmlRenderer renderer = new MusicXmlRenderer();
-////                    MusicStringParser parser = new MusicStringParser();
-////                    parser.addParserListener(renderer);
-////                    parser.parse(_score);
-//                    _score = new Pattern(_scorePartWise.toJFuguePatternString()).setVoice(0).setInstrument("Piano");
-//                    MidiParser parser = new MidiParser();
-//
-//
-////                    MusicXmlParserListener renderer = new MusicXmlParserListener();
-////                    StaccatoParser parser = new StaccatoParser();
-////                    parser.addParserListener(renderer);
-////                    parser.parse(_score);
-////                    Log.d(APPLICATION_TAG, renderer.getMusicXMLString());
-//
-////                    Serializer serializer = new Serializer(file, "UTF-8");
-////                    serializer.setIndent(4);
-////                    serializer.write(renderer.getMusicXMLDoc());
-//
-//                    file.flush();
-//                    file.close();
-//
-//                    Intent shareIntent = new Intent()
-//                            .setAction(Intent.ACTION_SEND).setType("text/xml")
-//                            .putExtra(Intent.EXTRA_EMAIL, "Hello World")
-//                            .putExtra(Intent.EXTRA_STREAM, Uri.fromFile(tempFile))
-//                            .putExtra(Intent.EXTRA_TEXT, "Sharing a file...")
-//                            .putExtra(Intent.EXTRA_SUBJECT, "Subject");
-//                    startActivityForResult(Intent.createChooser(shareIntent, "Share Your Recording"), 3461);
-//                }
-//                catch (IOException | StorageNotReadableException e)
-//                {
-//                    new AlertDialog.Builder(this)
-//                            .setTitle("Error Encountered")
-//                            .setMessage("Vivace was unable to share your recording.")
-//                            .setPositiveButton("Ok", new DialogInterface.OnClickListener()
-//                            {
-//                                @Override
-//                                public void onClick(DialogInterface dialog, int which)
-//                                {
-//                                    dialog.dismiss();
-//                                }
-//                            }).create().show();
-//                }
-//
-//                break;
+                try
+                {
+                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+                    String temp_filename = sharedPreferences.getString(SettingsActivity.KEY_FILE_STORAGE_NAME, "vivace_temp_recording.xml");
+
+                    FileStore fileStore = new FileStore(this);
+                    if (tempFile == null)
+                    {
+                        tempFile = new File(fileStore.getPrivateStorageDir(), temp_filename);
+                        FileOutputStream file = new FileOutputStream(tempFile);
+                        _score = new Pattern();
+                        _score.addElement(new Tempo(_bpm));
+                        _score.addElement(new Instrument(Instrument.PIANO));
+                        _score.add(_scorePartWise.toJFuguePatternString());
+                        MusicXmlRenderer renderer = new MusicXmlRenderer();
+                        MusicStringParser parser = new MusicStringParser();
+                        parser.addParserListener(renderer);
+                        parser.parse(_score);
+
+                        Serializer serializer = new Serializer(file, "UTF-8");
+                        serializer.setIndent(4);
+                        serializer.write(renderer.getMusicXMLDoc());
+
+                        file.flush();
+                        file.close();
+                    }
+
+                    Intent shareIntent = new Intent()
+                            .setAction(Intent.ACTION_SEND).setType("text/xml")
+                            .putExtra(Intent.EXTRA_EMAIL, "Hello World")
+                            .putExtra(Intent.EXTRA_STREAM, Uri.fromFile(tempFile))
+                            .putExtra(Intent.EXTRA_TEXT, "Sharing a file...")
+                            .putExtra(Intent.EXTRA_SUBJECT, "Subject");
+                    startActivityForResult(Intent.createChooser(shareIntent, "Share Your Recording"), 3461);
+                }
+                catch (IOException | StorageNotReadableException e)
+                {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Error Encountered")
+                            .setMessage("Vivace was unable to share your recording.")
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which)
+                                {
+                                    dialog.dismiss();
+                                }
+                            }).create().show();
+                }
+
+                break;
             default:
                 result = super.onOptionsItemSelected(item);
                 break;
@@ -348,38 +453,38 @@ public class MainActivity extends AppCompatActivity
     {
         getMenuInflater().inflate(R.menu.menu_actions, menu);
 
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
-        searchView.getQuery();
+//        MenuItem searchItem = menu.findItem(R.id.action_search);
+//        SearchView searchView = (SearchView) searchItem.getActionView();
+//        searchView.getQuery();
 
         // Configure the search info and add any event listeners...
         // Define the listener
-        MenuItem.OnActionExpandListener expandListener = new MenuItem.OnActionExpandListener()
-        {
-            /** {@inheritDoc} */
-            @Contract(pure = true)
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item)
-            {
-                // Do something when action item collapses
-                return true;  // Return true to collapse action view
-            }
-
-            /** {@inheritDoc} */
-            @Contract(pure = true)
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem item)
-            {
-                // Do something when expanded
-                return true;  // Return true to expand action view
-            }
-        };
+//        MenuItem.OnActionExpandListener expandListener = new MenuItem.OnActionExpandListener()
+//        {
+//            /** {@inheritDoc} */
+//            @Contract(pure = true)
+//            @Override
+//            public boolean onMenuItemActionCollapse(MenuItem item)
+//            {
+//                // Do something when action item collapses
+//                return true;  // Return true to collapse action view
+//            }
+//
+//            /** {@inheritDoc} */
+//            @Contract(pure = true)
+//            @Override
+//            public boolean onMenuItemActionExpand(MenuItem item)
+//            {
+//                // Do something when expanded
+//                return true;  // Return true to expand action view
+//            }
+//        };
 
         // Get the MenuItem for the action item
-        MenuItem actionMenuItem = menu.findItem(R.id.action_search);
+//        MenuItem actionMenuItem = menu.findItem(R.id.action_search);
 
         // Assign the listener to that action item
-        actionMenuItem.setOnActionExpandListener(expandListener);
+//        actionMenuItem.setOnActionExpandListener(expandListener);
 
         VivacePermissions.requestAllPermissions(this);
         return super.onCreateOptionsMenu(menu);
@@ -437,6 +542,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onTempoDialogPositiveClick(int tempo)
     {
+        Log.d(APPLICATION_TAG, "MainActivity - onTempoDialogPositiveClick: tempo = " + tempo);
+
         _bpm = tempo;
         _tempoTextView.setText(String.format("%d BPM", _bpm));
     }
@@ -450,6 +557,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onTimeSignDialogPositiveClick(String timeSign)
     {
+        Log.d(APPLICATION_TAG, "MainActivity - onTimeSignDialogPositiveClick: time signature = " + timeSign);
+
         _timeSignature = new TimeSignature(timeSign);
         _timeSignatureTextView.setText(_timeSignature.toString());
     }
@@ -468,9 +577,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onNewMeasure(Measure measure)
     {
+        Log.d(APPLICATION_TAG, "MainActivity - onNewMeasure: Getting script to display notes.");
+
         try
         {
-            Log.d(APPLICATION_TAG, "onNewMeasure: Getting script to display notes.");
             final String script = VexFlowScriptGenerator.getInstance().addMeasureStave(measure);
             _scoreUI.getHandler().post(new Runnable()
             {
@@ -482,7 +592,7 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void onReceiveValue(String value)
                         {
-                            Log.d(APPLICATION_TAG, String.format("onNewMeasure: %s", value));
+                            Log.d(APPLICATION_TAG, String.format("MainActivity - onNewMeasure: %s", value));
                         }
                     });
                 }
@@ -490,7 +600,7 @@ public class MainActivity extends AppCompatActivity
         }
         catch (NullPointerException e)
         {
-            Log.e(APPLICATION_TAG, String.format("onNewMeasure: %s", e.getMessage()));
+            Log.e(APPLICATION_TAG, String.format("MainActivity - onNewMeasure: %s", e.getMessage()));
         }
     }
 
