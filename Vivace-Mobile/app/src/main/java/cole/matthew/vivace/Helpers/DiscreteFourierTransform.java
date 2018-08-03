@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
-public class DFT
+public class DiscreteFourierTransform
 {
     /** A list of human-readable musical notes. */
     private static String[] notes = { "A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#" };
@@ -15,9 +15,10 @@ public class DFT
      * @param results The array of frequencies received by the microphone.
      * @param sampleRate The sample rate of the microphone in Hertz.
      * @param numSamples The number of samples received by the microphone.
+     * @param sigma A value which helps filter background pitches picked up by the microphone.
      * @return A HashMap of notes and their frequencies picked up by the microphone
      */
-    public static HashMap<String, Float> process(@NotNull double results[], float sampleRate, int numSamples, int sigma)
+    public static HashMap<String, Float> processAudio(@NotNull double results[], float sampleRate, int numSamples, int sigma)
     {
         double average = 0;
         for (double result : results)

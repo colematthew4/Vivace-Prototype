@@ -17,7 +17,6 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -52,7 +51,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 
 import cole.matthew.vivace.Exceptions.StorageNotReadableException;
-import cole.matthew.vivace.Helpers.DFT;
+import cole.matthew.vivace.Helpers.DiscreteFourierTransform;
 import cole.matthew.vivace.Helpers.FileStore;
 import cole.matthew.vivace.Helpers.VexFlowScriptGenerator;
 import cole.matthew.vivace.Helpers.VivacePermissionCodes;
@@ -89,8 +88,8 @@ public class MainActivity extends AppCompatActivity
     public static volatile boolean IsRecording;
     private TimeSignature _timeSignature;
     private int _bpm;
-    private long startTime;
-    private File tempFile;      // used to handle temporary recording storage for sharing files
+    private long _startTime;
+    private File _tempFile;      // used to handle temporary recording storage for sharing files
     private Handler timerHandler = new Handler();
     private Runnable timerRunnable = new Runnable()
     {
@@ -102,11 +101,10 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void run()
         {
-            long millis = System.currentTimeMillis() - startTime;
+            long millis = System.currentTimeMillis() - _startTime;
             int seconds = (int)(millis / 1000) % 60;
             int minutes = seconds / 60;
             _recordingTimer.setText(String.format("%02d:%02d", minutes, seconds));
-
             timerHandler.postDelayed(this, 500);
         }
     };
@@ -129,7 +127,7 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         _timeSignature = new TimeSignature(preferences.getString(TIME_SIGNATURE_TAG, "4/4"));
         _bpm = preferences.getInt(BPM_TAG, 120);
-        startTime = preferences.getLong(STARTTIME_TAG, 0);
+        _startTime = preferences.getLong(STARTTIME_TAG, 0);
 //        _score = new Pattern();
         _scorePartWise = ScorePartWise.createInstance(this, _timeSignature, _bpm);
 
@@ -178,7 +176,7 @@ public class MainActivity extends AppCompatActivity
 
                 if (VivacePermissions.requestPermission((Activity)v.getContext(), VivacePermissionCodes.RECORD_AUDIO))
                 {
-                    startTime = System.currentTimeMillis();
+                    _startTime = System.currentTimeMillis();
                     analyzeAudio();
                 }
             }
@@ -247,8 +245,9 @@ public class MainActivity extends AppCompatActivity
                                                 if (!storageLocation.exists())
                                                     throw new StorageNotReadableException("Couldn't gain access to your external storage.");
 
-                                                tempFile = new File(storageLocation, String.format("%s_%d%s", filename, storageLocation.listFiles().length + 1, fileExt));
-                                                FileOutputStream file = new FileOutputStream(tempFile);
+                                                _tempFile = new File(storageLocation, String.format("%s_%d%s", filename, storageLocation.listFiles().length + 1, fileExt));
+                                                FileOutputStream file = new FileOutputStream(
+                                                        _tempFile);
                                                 _score = new Pattern();
                                                 _score.addElement(new Tempo(_bpm));
                                                 _score.addElement(new Instrument(Instrument.PIANO));
@@ -264,8 +263,9 @@ public class MainActivity extends AppCompatActivity
 
                                                 file.flush();
                                                 file.close();
-                                                Toast.makeText(context, String.format("Saved as %s", tempFile.getName()), Toast.LENGTH_LONG).show();
-                                                tempFile = null;
+                                                Toast.makeText(context, String.format("Saved as %s", _tempFile
+                                                        .getName()), Toast.LENGTH_LONG).show();
+                                                _tempFile = null;
                                             }
                                         }
                                         catch (IOException | StorageNotReadableException e)
@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity
                                 _recordButton.setVisibility(View.VISIBLE);
                                 _playbackLayout.setVisibility(View.GONE);
 
-                                startTime = 0;
+                                _startTime = 0;
                                 _scorePartWise.clear();
                                 _scoreUI.evaluateJavascript(VexFlowScriptGenerator.getInstance().clearScore(), new ValueCallback<String>()
                                 {
@@ -310,7 +310,7 @@ public class MainActivity extends AppCompatActivity
                                 _recordButton.setVisibility(View.VISIBLE);
                                 _playbackLayout.setVisibility(View.GONE);
 
-                                startTime = 0;
+                                _startTime = 0;
                                 _scorePartWise.clear();
                                 _scoreUI.evaluateJavascript(VexFlowScriptGenerator.getInstance().clearScore(), new ValueCallback<String>()
                                 {
@@ -341,7 +341,7 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
         editor.putString(TIME_SIGNATURE_TAG, _timeSignature.toString());
         editor.putInt(BPM_TAG, _bpm);
-        editor.putLong(STARTTIME_TAG, startTime);
+        editor.putLong(STARTTIME_TAG, _startTime);
         editor.apply();
     }
 
@@ -367,10 +367,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-        if (requestCode == 3461 && tempFile != null && tempFile.exists())
+        if (requestCode == 3461 && _tempFile != null && _tempFile.exists())
         {
-            tempFile.delete();
-            tempFile = null;
+            _tempFile.delete();
+            _tempFile = null;
         }
     }
 
@@ -394,10 +394,10 @@ public class MainActivity extends AppCompatActivity
                     String temp_filename = sharedPreferences.getString(SettingsActivity.KEY_FILE_STORAGE_NAME, "vivace_temp_recording.xml");
 
                     FileStore fileStore = new FileStore(this);
-                    if (tempFile == null)
-                    {
-                        tempFile = new File(fileStore.getPrivateStorageDir(), temp_filename);
-                        FileOutputStream file = new FileOutputStream(tempFile);
+//                    if (_tempFile == null)
+//                    {
+                        _tempFile = new File(fileStore.getPrivateStorageDir(), temp_filename);
+                        FileOutputStream file = new FileOutputStream(_tempFile);
                         _score = new Pattern();
                         _score.addElement(new Tempo(_bpm));
                         _score.addElement(new Instrument(Instrument.PIANO));
@@ -413,12 +413,12 @@ public class MainActivity extends AppCompatActivity
 
                         file.flush();
                         file.close();
-                    }
+//                    }
 
                     Intent shareIntent = new Intent()
                             .setAction(Intent.ACTION_SEND).setType("text/xml")
                             .putExtra(Intent.EXTRA_EMAIL, "Hello World")
-                            .putExtra(Intent.EXTRA_STREAM, Uri.fromFile(tempFile))
+                            .putExtra(Intent.EXTRA_STREAM, Uri.fromFile(_tempFile))
                             .putExtra(Intent.EXTRA_TEXT, "Sharing a file...")
                             .putExtra(Intent.EXTRA_SUBJECT, "Subject");
                     startActivityForResult(Intent.createChooser(shareIntent, "Share Your Recording"), 3461);
@@ -608,7 +608,7 @@ public class MainActivity extends AppCompatActivity
     {
         if (!IsRecording)
         {
-//            startTime = System.currentTimeMillis();
+//            _startTime = System.currentTimeMillis();
             timerHandler.postDelayed(timerRunnable, 0);
 
             Thread thread = new Thread(new Runnable()
@@ -663,7 +663,7 @@ public class MainActivity extends AppCompatActivity
                             results[i] = Math.sqrt(real * real + imag * imag);
                         }
 
-                        HashMap<String, Float> keys = DFT.process(results, sampleSize, resultC.length, 7);
+                        HashMap<String, Float> keys = DiscreteFourierTransform.processAudio(results, sampleSize, resultC.length, 24);
                         if (keys.keySet().isEmpty())
                         {
                             Log.d(TAG, "Found: Rest");
