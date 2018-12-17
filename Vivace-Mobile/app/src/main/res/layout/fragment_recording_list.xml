@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content">
+	<LinearLayout
+		android:id="@+id/recordingListLayout"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:orientation="vertical"
+		app:behavior_hideable="true"
+		app:behavior_peekHeight="56dp"
+		app:layout_behavior="@string/bottom_sheet_behavior">
+		<LinearLayout
+			android:id="@+id/recordingLayout"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:background="#000"
+			android:gravity="center"
+			android:orientation="vertical"
+			android:paddingTop="10dp">
+			<ImageButton
+				android:id="@+id/recordButton"
+				android:layout_width="50dp"
+				android:layout_height="50dp"
+				android:layout_gravity="center"
+				android:background="@drawable/round_button"
+				android:contentDescription="@string/record_button_desc"
+				app:srcCompat="@drawable/ic_mic_white_24dp" />
+			<LinearLayout
+				android:id="@+id/playbackLayout"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:background="#000"
+				android:orientation="horizontal"
+				android:visibility="gone">
+				<TextView
+					android:id="@+id/recordingTimer"
+					android:layout_width="0dp"
+					android:layout_height="match_parent"
+					android:layout_gravity="start"
+					android:layout_marginEnd="25dp"
+					android:layout_marginStart="25dp"
+					android:layout_weight="7"
+					android:background="@android:color/black"
+					android:text="@string/Default_Timer"
+					android:textAlignment="center"
+					android:textColor="@android:color/white"
+					android:textSize="35sp" />
+				<ImageButton
+					android:id="@+id/pauseButton"
+					android:layout_width="50dp"
+					android:layout_height="50dp"
+					android:layout_gravity="center"
+					android:layout_marginEnd="5dp"
+					android:background="@drawable/round_button"
+					android:contentDescription="@string/pause_button_desc"
+					app:srcCompat="@drawable/ic_pause_white_24dp" />
+				<ImageButton
+					android:id="@+id/stopButton"
+					android:layout_width="50dp"
+					android:layout_height="50dp"
+					android:layout_gravity="center"
+					android:layout_marginEnd="25dp"
+					android:layout_marginStart="5dp"
+					android:background="@drawable/round_button"
+					android:contentDescription="@string/pause_button_desc"
+					app:srcCompat="@drawable/ic_stop_white_24dp" />
+			</LinearLayout>
+		</LinearLayout>
+		<android.support.v7.widget.RecyclerView
+			android:id="@+id/recordingList"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:background="#505050"
+			android:clipToPadding="false"
+			android:paddingBottom="@dimen/list_item_spacing_half"
+			android:paddingTop="@dimen/list_item_spacing_half"
+			android:scrollbars="vertical"
+			tools:context=".Fragments.RecordingListDialogFragment"
+			tools:listitem="@layout/fragment_recording_list_dialog_item" />
+	</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

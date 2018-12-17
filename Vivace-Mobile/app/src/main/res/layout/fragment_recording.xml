@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical">
+	<RelativeLayout
+		android:id="@+id/recyclerview_background"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:background="@android:color/holo_red_dark">
+		<ImageView
+			android:id="@+id/delete_recording_icon"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentEnd="true"
+			android:layout_centerVertical="true"
+			android:layout_marginEnd="@dimen/padd_10"
+			android:src="@drawable/ic_delete_white_24dp"
+			android:contentDescription="@string/delete_description" />
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerVertical="true"
+			android:layout_marginEnd="@dimen/padd_10"
+			android:layout_toStartOf="@id/delete_recording_icon"
+			android:text="@string/delete"
+			android:textColor="#fff"
+			android:textSize="13sp" />
+	</RelativeLayout>
+	<RelativeLayout
+		android:id="@+id/recyclerview_foreground"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:padding="@dimen/padd_10"
+		android:background="@android:color/white">
+	    <ImageView
+		    android:id="@+id/recording_file_icon"
+		    android:layout_width="40dp"
+		    android:layout_height="40dp"
+		    android:layout_marginEnd="@dimen/padd_10"
+		    android:layout_alignParentStart="true"
+		    android:layout_centerVertical="true"
+		    android:src="@drawable/ic_file_black_24dp"
+		    android:contentDescription="@string/recording_filetype" />
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="40dp"
+			android:layout_centerVertical="true"
+			android:layout_toEndOf="@id/recording_file_icon"
+			android:orientation="vertical">
+			<TextView
+				android:id="@+id/file_name"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:textAppearance="?attr/textAppearanceListItem"
+				android:textSize="17sp" />
+		    <TextView
+			    android:id="@+id/lastModified"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_gravity="end"
+			    android:textAppearance="?attr/textAppearanceListItem"
+			    android:textSize="12sp" />
+		</LinearLayout>
+	</RelativeLayout>
+</FrameLayout>

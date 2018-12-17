@@ -2,38 +2,96 @@ package cole.matthew.vivace.Helpers;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
+import cole.matthew.vivace.Activities.SettingsActivity;
 import cole.matthew.vivace.Exceptions.InsufficientStorageException;
+import cole.matthew.vivace.Exceptions.InvalidFileException;
 import cole.matthew.vivace.Exceptions.StorageNotReadableException;
+import cole.matthew.vivace.Models.Recordings.IRecording;
+import cole.matthew.vivace.Models.Recordings.RecordingFactory;
 
-public class FileStore
-{
+public class FileStore {
     private static final String TAG = "FileStore_Tag";
     private Activity _context;
 
-    public FileStore(Activity context)
-    {
+    public FileStore(Activity context) {
         _context = context;
     }
 
     /**
+     * Gets the amount of recordings that have been saved.
+     *
+     * @return the amount of recordings saved on the device
+     */
+    public int getRecordingCount() {
+        int recordingCount = 0;
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(_context);
+        final boolean usePublicStorage = sharedPreferences.getBoolean(SettingsActivity.KEY_FILE_STORAGE_LOCATION, false);
+
+        if (isExternalStorageReadable()) {
+            try {
+                File storageLocation = usePublicStorage ? getPublicStorageDir() : getPrivateStorageDir();
+                recordingCount = storageLocation.list().length;
+            }
+            catch (StorageNotReadableException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return recordingCount;
+    }
+
+    /**
+     * Gets an array of the recordings that have been saved to the device.
+     *
+     * @return the recordings saved on the device
+     */
+    public List<IRecording> getRecordings() {
+        List<IRecording> recordings = new ArrayList<>();
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(_context);
+        final boolean usePublicStorage = sharedPreferences.getBoolean(SettingsActivity.KEY_FILE_STORAGE_LOCATION, false);
+
+        if (isExternalStorageReadable()) {
+            try {
+                File storageLocation = usePublicStorage ? getPublicStorageDir() : getPrivateStorageDir();
+                File[] internalRecordings = storageLocation.listFiles();
+                RecordingFactory recordingFactory = new RecordingFactory();
+                for (File internalRecording : internalRecordings) {
+                    recordings.add(recordingFactory.getRecording(internalRecording));
+                }
+            }
+            catch (StorageNotReadableException | FileNotFoundException | InvalidFileException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return recordings;
+    }
+
+    /**
      * Checks if external storage is available for read and write.
+     *
      * @return True if it is writable, false if not.
      */
-    public boolean isExternalStorageWritable()
-    {
+    public boolean isExternalStorageWritable() {
         boolean result;
 
-        if (VivacePermissions.hasPermission(_context, Manifest.permission.WRITE_EXTERNAL_STORAGE))
-        {
+        if (VivacePermissions.hasPermission(_context, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             String state = Environment.getExternalStorageState();
             result = Environment.MEDIA_MOUNTED.equals(state);
         }
@@ -45,14 +103,13 @@ public class FileStore
 
     /**
      * Checks if external storage is available to at least read.
+     *
      * @return True if it is readable, false if not.
      */
-    public boolean isExternalStorageReadable()
-    {
+    public boolean isExternalStorageReadable() {
         boolean result;
 
-        if (VivacePermissions.hasPermission(_context, Manifest.permission.READ_EXTERNAL_STORAGE))
-        {
+        if (VivacePermissions.hasPermission(_context, Manifest.permission.READ_EXTERNAL_STORAGE)) {
             String state = Environment.getExternalStorageState();
             result = Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
         }
@@ -64,6 +121,7 @@ public class FileStore
 
     /**
      * Gets the public external storage directory of the recordings Vivace has saved.
+     *
      * @return The public external storage directory.
      */
     public File getPublicStorageDir()
@@ -119,8 +177,7 @@ public class FileStore
         File publicStorageDir = getPublicStorageDir();
         File privateStorageDir = getPrivateStorageDir();
 
-        if (publicStorageDir.getFreeSpace() > 0.1 * publicStorageDir.getTotalSpace())
-        {
+        if (publicStorageDir.getFreeSpace() > 0.1 * publicStorageDir.getTotalSpace()) {
             //            new AsyncTask<Object, Object, Object>()
             //            {
             //                @Override
@@ -151,32 +208,26 @@ public class FileStore
             //                    return null;
             //                }
             //            };
-            for (File file : privateStorageDir.listFiles())
-            {
-                try
-                {
-                    InputStream inputStream = new FileInputStream(file);
-                    OutputStream outputStream = new FileOutputStream(new File(publicStorageDir, file.getName()));
+            for (File file : privateStorageDir.listFiles()) {
+                try {
+                    try (InputStream inputStream = new FileInputStream(file); OutputStream outputStream = new FileOutputStream(new File(publicStorageDir, file.getName()))) {
+                        byte[] buf = new byte[1024];
+                        int length;
 
-                    byte[] buf = new byte[1024];
-                    int length;
+                        while ((length = inputStream.read(buf)) > 0)
+                            outputStream.write(buf, 0, length);
+                    }
 
-                    while ((length = inputStream.read(buf)) > 0)
-                        outputStream.write(buf, 0, length);
-
-                    inputStream.close();
-                    outputStream.close();
+                    // TODO implement retry system?
                     file.delete();
                 }
-                catch (java.io.IOException e)
-                {
+                catch (java.io.IOException e) {
                     Log.e(TAG, e.getMessage());
                 }
             }
         }
         else
-            throw new InsufficientStorageException("You do not have enough storage space to transfer " +
-                                                   "files from public to private storage.");
+            throw new InsufficientStorageException("You do not have enough storage space to transfer files from public to private storage.");
     }
 
     /**
@@ -189,63 +240,56 @@ public class FileStore
         final File publicStorageDir = getPublicStorageDir();
         final File privateStorageDir = getPrivateStorageDir();
 
-        if (privateStorageDir.getFreeSpace() > 0.1 * privateStorageDir.getTotalSpace())
-        {
-//            new AsyncTask<Object, Object, Object>()
-//            {
-//                @Override
-//                protected Object doInBackground(Object[] objects)
-//                {
-//                    for (File file : publicStorageDir.listFiles())
-//                    {
-//                        try
-//                        {
-//                            InputStream inputStream = new FileInputStream(file);
-//                            OutputStream outputStream = new FileOutputStream(privateStorageDir);
-//
-//                            byte[] buf = new byte[1024];
-//                            int length;
-//
-//                            while ((length = inputStream.read(buf)) > 0)
-//                                outputStream.write(buf, 0, length);
-//
-//                            inputStream.close();
-//                            outputStream.close();
-//                        }
-//                        catch (java.io.IOException e)
-//                        {
-//                            Log.e(TAG, e.getMessage());
-//                        }
-//                    }
-//
-//                    return null;
-//                }
-//            };
-            for (File file : publicStorageDir.listFiles())
-            {
-                try
-                {
-                    InputStream inputStream = new FileInputStream(file);
-                    OutputStream outputStream = new FileOutputStream(new File(privateStorageDir, file.getName()));
+        if (privateStorageDir.getFreeSpace() > 0.1 * privateStorageDir.getTotalSpace()) {
+            //            new AsyncTask<Object, Object, Object>()
+            //            {
+            //                @Override
+            //                protected Object doInBackground(Object[] objects)
+            //                {
+            //                    for (File file : publicStorageDir.listFiles())
+            //                    {
+            //                        try
+            //                        {
+            //                            InputStream inputStream = new FileInputStream(file);
+            //                            OutputStream outputStream = new FileOutputStream(privateStorageDir);
+            //
+            //                            byte[] buf = new byte[1024];
+            //                            int length;
+            //
+            //                            while ((length = inputStream.read(buf)) > 0)
+            //                                outputStream.write(buf, 0, length);
+            //
+            //                            inputStream.close();
+            //                            outputStream.close();
+            //                        }
+            //                        catch (java.io.IOException e)
+            //                        {
+            //                            Log.e(TAG, e.getMessage());
+            //                        }
+            //                    }
+            //
+            //                    return null;
+            //                }
+            //            };
+            for (File file : publicStorageDir.listFiles()) {
+                try {
+                    try (InputStream inputStream = new FileInputStream(file); OutputStream outputStream = new FileOutputStream(new File(privateStorageDir, file.getName()))) {
+                        byte[] buf = new byte[1024];
+                        int length;
 
-                    byte[] buf = new byte[1024];
-                    int length;
+                        while ((length = inputStream.read(buf)) > 0)
+                            outputStream.write(buf, 0, length);
+                    }
 
-                    while ((length = inputStream.read(buf)) > 0)
-                        outputStream.write(buf, 0, length);
-
-                    inputStream.close();
-                    outputStream.close();
+                    // TODO: implementry retry system?
                     file.delete();
                 }
-                catch (java.io.IOException e)
-                {
+                catch (java.io.IOException e) {
                     Log.e(TAG, e.getMessage());
                 }
             }
         }
         else
-            throw new InsufficientStorageException("You do not have enough storage space to transfer " +
-                                                   "files from public to private storage.");
+            throw new InsufficientStorageException("You do not have enough storage space to transfer files from public to private storage.");
     }
 }

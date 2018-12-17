@@ -6,13 +6,13 @@
 	android:orientation="vertical">
 	<fragment
 		android:id="@+id/toolbarFragment"
-		android:name="cole.matthew.vivace.ToolbarFragment"
+		android:name="cole.matthew.vivace.Fragments.ToolbarFragment"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		tools:layout="@layout/fragment_toolbar" />
 	<fragment
 		android:id="@+id/settingsFragment"
-		android:name="cole.matthew.vivace.SettingsActivity$VivaceSettingsPreferenceFragment"
+		android:name="cole.matthew.vivace.Activities.SettingsActivity$VivaceSettingsPreferenceFragment"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
 </LinearLayout>

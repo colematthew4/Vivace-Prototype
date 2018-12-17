@@ -1,4 +1,4 @@
-package cole.matthew.vivace;
+package cole.matthew.vivace.Fragments;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -12,6 +12,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.NumberPicker;
 
+import java.util.Arrays;
+
+import cole.matthew.vivace.R;
+
 /**
  * <p>
  *     This is an extension of the DialogFragment that shows the different Time Signatures that Vivace
@@ -19,38 +23,42 @@ import android.widget.NumberPicker;
  * </p>
  * <p>
  *     NOTE: In order for this class to be used, the calling Activity MUST inherit the
- *     {@link NoticeTempoDialogListener} interface, or it will cause a runtime exception
+ *     {@link NoticeTimeSignDialogListener} interface, or it will cause a runtime exception
  *     (see {@link #onAttach(Context)}).
  * </p>
  */
-public class TempoPickerFragment extends DialogFragment
+public class TimeSignaturePickerFragment extends DialogFragment
 {
-    public interface NoticeTempoDialogListener
+    /**
+     * An interface to allow an {@link android.app.Activity} to listen for value changes from the {@link TimeSignaturePickerFragment}.
+     */
+    public interface NoticeTimeSignDialogListener
     {
         /**
          * A callback method for receiving the
          * {@link android.app.AlertDialog.Builder#setPositiveButton(CharSequence, DialogInterface.OnClickListener)}
          * event that allows the hosting activity to do things with the value that was selected, in this
-         * case the tempo of the music.
+         * case the time signature of the music.
          *
-         * @param tempo The tempo that was selected.
+         * @param timeSign The tempo that was selected.
          */
-        void onTempoDialogPositiveClick(int tempo);
+        void onTimeSignDialogPositiveClick(String timeSign);
 
         /**
          * A callback method for receiving the
          * {@link android.app.AlertDialog.Builder#setNegativeButton(CharSequence, DialogInterface.OnClickListener)}
          * event that allows the hosting activity to do things with the value that was selected, in this
-         * case the tempo of the music.
+         * case the time signature of the music.
          *
-         * @param tempo The tempo that was selected.
+         * @param timeSign The tempo that was selected.
          */
-        void onTempoDialogNegativeClick(int tempo);
+        void onTimeSignDialogNegativeClick(String timeSign);
     }
 
     private final String TAG = "TempoPickerFragment";
-    private NoticeTempoDialogListener _noticeDialogListener;
-    private int _tempo;
+    private NoticeTimeSignDialogListener _noticeDialogListener;
+    private String _timeSignature;
+    private String[] TimeSignatures;
     private DialogInterface.OnClickListener _onClickListener = new DialogInterface.OnClickListener()
     {
         /** {@inheritDoc} */
@@ -60,11 +68,11 @@ public class TempoPickerFragment extends DialogFragment
             switch (which)
             {
                 case DialogInterface.BUTTON_POSITIVE:
-                    _noticeDialogListener.onTempoDialogPositiveClick(_tempo);
+                    _noticeDialogListener.onTimeSignDialogPositiveClick(_timeSignature);
                     dialog.dismiss();
                     break;
                 case DialogInterface.BUTTON_NEGATIVE:
-                    _noticeDialogListener.onTempoDialogNegativeClick(_tempo);
+                    _noticeDialogListener.onTimeSignDialogNegativeClick(_timeSignature);
                     dialog.cancel();
                     break;
                 default:
@@ -81,28 +89,28 @@ public class TempoPickerFragment extends DialogFragment
         if (arguments == null)
             arguments = getArguments();
 
+        TimeSignatures = getResources().getStringArray(R.array.timeSignatures);
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
         @SuppressLint("InflateParams")
-        View view = layoutInflater.inflate(R.layout.tempo_picker, null);
+        View view = layoutInflater.inflate(R.layout.time_signature_picker, null);
 
-        NumberPicker tempoPicker = view.findViewById(R.id.tempoPicker);
-        tempoPicker.setMaxValue(218);
-        tempoPicker.setMinValue(40);
-        tempoPicker.setValue(arguments.getInt("TempoValue"));
-        tempoPicker.setOnScrollListener(new NumberPicker.OnScrollListener()
+        NumberPicker timeSignPicker = view.findViewById(R.id.timeSignPicker);
+        timeSignPicker.setMaxValue(TimeSignatures.length - 1);
+        timeSignPicker.setMinValue(0);
+        timeSignPicker.setDisplayedValues(TimeSignatures);
+        timeSignPicker.setValue(Arrays.asList(TimeSignatures).indexOf(arguments.getString("TimeSignValue")));
+        timeSignPicker.setOnScrollListener(new NumberPicker.OnScrollListener()
         {
             @Override
             public void onScrollStateChange(NumberPicker view, int scrollState)
             {
-                if (scrollState == SCROLL_STATE_IDLE)
-                    _tempo = view.getValue();
+                _timeSignature = TimeSignatures[view.getValue()];
             }
         });
 
         return builder.setView(view)
-                      .setTitle("Pick the Tempo")
-                      .setIcon(R.drawable.tempo_marker)
+                      .setTitle("Pick the Time Signature")
                       .setPositiveButton("Select", _onClickListener)
                       .setNegativeButton("Cancel", _onClickListener)
                       .create();
@@ -116,7 +124,7 @@ public class TempoPickerFragment extends DialogFragment
 
         try
         {
-            _noticeDialogListener = (NoticeTempoDialogListener)context;
+            _noticeDialogListener = (NoticeTimeSignDialogListener)context;
         }
         catch (ClassCastException e)    // The activity doesn't implement the interface, throw exception
         {

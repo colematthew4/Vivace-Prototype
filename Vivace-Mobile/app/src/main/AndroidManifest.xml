@@ -4,8 +4,8 @@
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
-	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
 	    android:icon="@mipmap/vivace_logo"
@@ -14,20 +14,30 @@
 	    android:supportsRtl="true"
 	    android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity
-	        android:name=".MainActivity"
+	        android:name=".Activities.MainActivity"
 	        android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-	        android:name=".SettingsActivity"
+	        android:name=".Activities.SettingsActivity"
 	        android:label="@string/title_activity_settings"
-	        android:parentActivityName=".MainActivity">
+	        android:parentActivityName=".Activities.MainActivity">
             <meta-data
 	            android:name="android.support.PARENT_ACTIVITY"
-	            android:value="cole.matthew.vivace.MainActivity" />
+	            android:value="cole.matthew.vivace.Activities.MainActivity" />
+        </activity>
+        <activity
+	        android:name=".Activities.OpenRecordingActivity"
+	        android:label="@string/title_activity_open_recording"
+	        android:parentActivityName=".Activities.MainActivity"
+	        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+	            android:name="android.support.PARENT_ACTIVITY"
+	            android:value="cole.matthew.vivace.Activities.MainActivity" />
         </activity>
     </application>
 

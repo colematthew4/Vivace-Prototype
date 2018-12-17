@@ -10,7 +10,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
-import cole.matthew.vivace.MainActivity;
+import cole.matthew.vivace.Activities.MainActivity;
 import cole.matthew.vivace.R;
 
 public abstract class VivacePermissions

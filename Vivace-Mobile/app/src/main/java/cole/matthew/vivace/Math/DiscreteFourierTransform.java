@@ -1,4 +1,4 @@
-package cole.matthew.vivace.Helpers;
+package cole.matthew.vivace.Math;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -87,7 +87,7 @@ public class DiscreteFourierTransform
      * Takes a frequency and returns the corresponding key number on a piano in the range 1-88. This
      * formula is derived from the logarithmic nature of the frequency.
      *
-     * @param freq The frequency to get the key number for.
+     * @param freq The frequency to getRecording the key number for.
      * @return A number between 1 and 88 identifying the key number of the note.
      */
     private static int closestKeyIndex(double freq)
