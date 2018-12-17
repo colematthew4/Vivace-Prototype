@@ -23,7 +23,7 @@
 			android:layout_centerVertical="true"
 			android:layout_marginEnd="@dimen/padd_10"
 			android:layout_toStartOf="@id/delete_recording_icon"
-			android:text="@string/delete"
+			android:text="@string/action_delete"
 			android:textColor="#fff"
 			android:textSize="13sp" />
 	</RelativeLayout>
