@@ -34,8 +34,7 @@
         <activity
 	        android:name=".Activities.OpenRecordingActivity"
 	        android:label="@string/title_activity_open_recording"
-	        android:parentActivityName=".Activities.MainActivity"
-	        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+	        android:parentActivityName=".Activities.MainActivity">
             <meta-data
 	            android:name="android.support.PARENT_ACTIVITY"
 	            android:value="cole.matthew.vivace.Activities.MainActivity" />

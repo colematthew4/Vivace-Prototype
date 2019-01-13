@@ -1,137 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:id="@+id/activity_layout"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:background="@color/colorWhite"
-	android:orientation="vertical"
+	android:fitsSystemWindows="true"
+	tools:openDrawer="end"
 	tools:context=".Activities.MainActivity">
-	<fragment
-		android:id="@+id/toolbarFragment"
-		android:name="cole.matthew.vivace.Fragments.ToolbarFragment"
+	
+	<include
+		layout="@layout/app_bar_main"
 		android:layout_width="match_parent"
+		android:layout_height="match_parent" />
+	
+	<RelativeLayout
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		tools:layout="@layout/fragment_toolbar" />
-	<LinearLayout
-		android:id="@+id/optionsLayout"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_below="@id/toolbarFragment"
-		android:orientation="horizontal"
-		android:background="@drawable/border">
-		<TextView
-			android:id="@+id/timeSignSelector"
-			android:layout_width="0dp"
-			android:layout_height="wrap_content"
-			android:layout_weight="1"
-			android:gravity="center_vertical"
-			android:layout_marginStart="20dp"
-			android:layout_marginEnd="10dp"
-			android:layout_marginTop="1dp"
-			android:layout_marginBottom="1dp"
-			android:paddingStart="5dp"
-			android:paddingEnd="5dp"
-			android:textSize="18sp"
-			android:clickable="true"
-			android:focusable="true"
-			android:background="@drawable/options_layout_button" />
-		<ImageView
-			android:layout_width="30dp"
-			android:layout_height="match_parent"
-			android:layout_marginStart="10dp"
-			android:src="@drawable/tempo_marker_short"
-			android:contentDescription="@string/tempo_contentDesc" />
-		<TextView
-			android:id="@+id/tempo"
-			android:layout_width="0dp"
-			android:layout_height="match_parent"
-			android:layout_weight="1"
-			android:gravity="center_vertical"
-			android:layout_marginStart="-8dp"
-			android:layout_marginEnd="20dp"
-			android:layout_marginTop="1dp"
-			android:layout_marginBottom="1dp"
-			android:paddingStart="5dp"
-			android:paddingEnd="5dp"
-			android:textSize="18sp"
-			android:clickable="true"
-			android:focusable="true"
-			android:background="@drawable/options_layout_button" />
-	</LinearLayout>
-	<WebView
-		android:id="@+id/scoreUI"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_alignParentStart="true"
-		android:layout_below="@+id/optionsLayout"
-		android:layout_above="@id/recordingFragment" />
-	<fragment
-		android:id="@+id/recordingFragment"
-		android:name="cole.matthew.vivace.Fragments.RecordingBottomSheetFragment"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_alignParentBottom="true"
-		android:paddingTop="10dp"
-		android:background="#000"
-		android:gravity="center"
-		tools:layout="@layout/fragment_recording_list" />
-	<!--<LinearLayout-->
-		<!--android:id="@+id/recordingLayout"-->
-		<!--android:layout_width="match_parent"-->
-		<!--android:layout_height="wrap_content"-->
-		<!--android:layout_alignParentBottom="true"-->
-		<!--android:paddingTop="10dp"-->
-		<!--android:background="#fff"-->
-		<!--android:gravity="center"-->
-		<!--android:orientation="vertical">-->
-		<!--<ImageButton-->
-			<!--android:id="@+id/recordButton"-->
-			<!--android:layout_width="50dp"-->
-			<!--android:layout_height="50dp"-->
-			<!--android:layout_gravity="center"-->
-			<!--android:background="@drawable/round_button"-->
-			<!--android:contentDescription="@string/record_button_desc"-->
-			<!--app:srcCompat="@drawable/ic_mic_white_24dp" />-->
+		android:layout_gravity="end"
+		android:fitsSystemWindows="true"
+		android:background="@android:color/darker_gray">
+		
+		<include
+			layout="@layout/audio_settings_side_layout"
+			android:layout_width="310dp"
+			android:layout_height="match_parent" />
 		<!--<LinearLayout-->
-			<!--android:id="@+id/playbackLayout"-->
-			<!--android:layout_width="match_parent"-->
-			<!--android:layout_height="wrap_content"-->
-			<!--android:background="#000"-->
-			<!--android:orientation="horizontal"-->
-			<!--android:visibility="gone">-->
+			<!--xmlns:android="http://schemas.android.com/apk/res/android"-->
+			<!--android:layout_width="310dp"-->
+			<!--android:layout_height="match_parent"-->
+			<!--android:layout_gravity="end"-->
+			<!--android:orientation="vertical"-->
+			<!--android:fitsSystemWindows="true">-->
 			<!--<TextView-->
-				<!--android:id="@+id/recordingTimer"-->
-				<!--android:layout_width="0dp"-->
-				<!--android:layout_height="match_parent"-->
-				<!--android:layout_gravity="start"-->
-				<!--android:layout_marginStart="25dp"-->
-				<!--android:layout_marginEnd="25dp"-->
-				<!--android:layout_weight="7"-->
-				<!--android:background="@android:color/black"-->
-				<!--android:text="@string/Default_Timer"-->
-				<!--android:textAlignment="center"-->
-				<!--android:textColor="@android:color/white"-->
-				<!--android:textSize="35sp" />-->
-			<!--<ImageButton-->
-				<!--android:id="@+id/pauseButton"-->
-				<!--android:layout_width="50dp"-->
-				<!--android:layout_height="50dp"-->
-				<!--android:layout_gravity="center"-->
-				<!--android:layout_marginEnd="5dp"-->
-				<!--android:background="@drawable/round_button"-->
-				<!--android:contentDescription="@string/pause_button_desc"-->
-				<!--app:srcCompat="@drawable/ic_pause_white_24dp" />-->
-			<!--<ImageButton-->
-				<!--android:id="@+id/stopButton"-->
-				<!--android:layout_width="50dp"-->
-				<!--android:layout_height="50dp"-->
-				<!--android:layout_gravity="center"-->
-				<!--android:layout_marginEnd="25dp"-->
-				<!--android:layout_marginStart="5dp"-->
-				<!--android:background="@drawable/round_button"-->
-				<!--android:contentDescription="@string/pause_button_desc"-->
-				<!--app:srcCompat="@drawable/ic_stop_white_24dp" />-->
+				<!--android:layout_width="wrap_content"-->
+				<!--android:layout_height="wrap_content"-->
+				<!--android:text="This is on the right"-->
+				<!--android:textSize="24sp"-->
+				<!--android:background="@color/colorAccent" />-->
 		<!--</LinearLayout>-->
-	<!--</LinearLayout>-->
-</RelativeLayout>
+	</RelativeLayout>
+	
+</android.support.v4.widget.DrawerLayout>

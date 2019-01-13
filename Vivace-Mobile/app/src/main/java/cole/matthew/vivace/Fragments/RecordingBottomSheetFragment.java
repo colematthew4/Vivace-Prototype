@@ -35,7 +35,7 @@ import cole.matthew.vivace.R;
  */
 public class RecordingBottomSheetFragment extends Fragment {
     private static final String RECORINGS_COUNT = "VIVACE_RECORDING_LIST_COUNT";
-    private static final String RECORDING_BOTTOM_SHEET_FRAGMENT_TAG = "VIVACE_RECORDING_BOTTOM_SHEET_FRAGMENT";
+    private static final String RECORDING_SIDE_SHEET_FRAGMENT_TAG = "VIVACE_RECORDING_BOTTOM_SHEET_FRAGMENT";
     private RecyclerView _recordingListRecyclerView;
     private RecyclerView.Adapter _recordingListAdapter;
     private RecyclerView.LayoutManager _recordingListLayoutManager;
@@ -85,14 +85,14 @@ public class RecordingBottomSheetFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_recording_list, container, false);
         _recordingListLayout = view.findViewById(R.id.recordingListLayout);
         _recordingListLayout.setOnClickListener(new View.OnClickListener() {
             /** {@inheritDoc} */
             @Override
             public void onClick(View v) {
-                Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "RecordingListLayout onClick");
+                Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "RecordingListLayout onClick");
                 toggleState();
             }
         });
@@ -101,33 +101,33 @@ public class RecordingBottomSheetFragment extends Fragment {
         _recordingListBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             /** {@inheritDoc} */
             @Override
-            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+            public void onStateChanged(@NonNull View sideSheet, int newState) {
                 switch (newState) {
                     case BottomSheetBehavior.STATE_HIDDEN:
-                        //                        Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "Hidden");
+                        Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "Hidden");
                         break;
                     case BottomSheetBehavior.STATE_EXPANDED:
-                        //                        Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "Expanded");
+                        Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "Expanded");
                         break;
                     case BottomSheetBehavior.STATE_COLLAPSED:
-                        //                        Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "Collapsed");
+                        Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "Collapsed");
                         break;
                     case BottomSheetBehavior.STATE_DRAGGING:
-                        //                        Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "Dragging");
+                        Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "Dragging");
                         break;
                     case BottomSheetBehavior.STATE_SETTLING:
-                        //                        Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "Settling");
+                        Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "Settling");
                         break;
                     default:
-                        //                        Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, String.valueOf(_recordingListBottomSheetBehavior.getState()));
+                        Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, String.valueOf(_recordingListBottomSheetBehavior.getState()));
                         break;
                 }
             }
 
             /** {@inheritDoc} */
             @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                //                Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "onSlide");
+            public void onSlide(@NonNull View sideSheet, float slideOffset) {
+                Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "onSlide");
             }
         });
 
@@ -142,14 +142,14 @@ public class RecordingBottomSheetFragment extends Fragment {
                                                                                @Override
                                                                                public void onClick(View view, int position) {
                                                                                    // TODO: Load the recording into sheet music, display it, and play the audio
-                                                                                   Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG,
+                                                                                   Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG,
                                                                                          view.toString() + ": onClick");
                                                                                }
 
                                                                                /** {@inheritDoc */
                                                                                @Override
                                                                                public void onLongClick(View view, int position) {
-                                                                                   Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "onLongClick");
+                                                                                   Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "onLongClick");
                                                                                }
                                                                            }));
         _recordingListRecyclerView.setLayoutManager(_recordingListLayoutManager);
@@ -219,7 +219,6 @@ public class RecordingBottomSheetFragment extends Fragment {
         RecordingViewHolder(View view) {
             super(view);
             _recordingTextView = view.findViewById(R.id.lastModified);
-            ;
         }
     }
 
@@ -296,15 +295,15 @@ public class RecordingBottomSheetFragment extends Fragment {
                 /** {@inheritDoc} */
                 @Override
                 public boolean onSingleTapUp(MotionEvent e) {
-                    Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "onSingleTapUp");
+                    Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "onSingleTapUp");
                     return true;
                 }
 
                 /** {@inheritDoc} */
                 @Override
                 public void onLongPress(MotionEvent e) {
-                    //                    Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "onLongPress");
-                    Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "onLongPress: " + e.toString());
+                    //                    Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "onLongPress");
+                    Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "onLongPress: " + e.toString());
                     View child = recyclerView.findChildViewUnder(e.getX(), e.getY());
                     if (child != null && _clickListener != null)
                         _clickListener.onLongClick(child, recyclerView.getChildLayoutPosition(child));
@@ -315,7 +314,7 @@ public class RecordingBottomSheetFragment extends Fragment {
         /** {@inheritDoc} */
         @Override
         public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
-            Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "onInterceptTouchEvent");
+            Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "onInterceptTouchEvent");
             //            View child = rv.findChildViewUnder(e.getX(), e.getY());
             //            if (child != null && _clickListener != null && _gestureDetector.onTouchEvent(e))
             //                _clickListener.onClick(child, rv.getChildLayoutPosition(child));
@@ -325,13 +324,13 @@ public class RecordingBottomSheetFragment extends Fragment {
         /** {@inheritDoc} */
         @Override
         public void onTouchEvent(RecyclerView rv, MotionEvent e) {
-            Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, e.toString() + ": onTouchEvent");
+            Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, e.toString() + ": onTouchEvent");
         }
 
         /** {@inheritDoc} */
         @Override
         public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-            Log.d(RECORDING_BOTTOM_SHEET_FRAGMENT_TAG, "onRequestDisallowInterceptTouchEvent");
+            Log.d(RECORDING_SIDE_SHEET_FRAGMENT_TAG, "onRequestDisallowInterceptTouchEvent");
         }
 
         public interface RecordingListClickListener {

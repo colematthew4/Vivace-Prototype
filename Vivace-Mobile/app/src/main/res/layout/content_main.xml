@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/activity_layout"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="@color/colorWhite"
+	android:orientation="vertical">
+	<WebView
+		android:id="@+id/scoreUI"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_above="@id/recordingFragment"
+		android:layout_alignParentStart="true" />
+	<fragment
+		android:id="@+id/recordingFragment"
+		android:name="cole.matthew.vivace.Fragments.RecordingBottomSheetFragment"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:background="#000"
+		android:gravity="center"
+		android:paddingTop="10dp"
+		tools:layout="@layout/fragment_recording_list" />
+	<!--<LinearLayout-->
+		<!--android:id="@+id/recordingLayout"-->
+		<!--android:layout_width="match_parent"-->
+		<!--android:layout_height="wrap_content"-->
+		<!--android:layout_alignParentBottom="true"-->
+		<!--android:background="#fff"-->
+		<!--android:gravity="center"-->
+		<!--android:orientation="vertical"-->
+		<!--android:paddingTop="10dp">-->
+		<!--<ImageButton-->
+			<!--android:id="@+id/recordButton"-->
+			<!--android:layout_width="50dp"-->
+			<!--android:layout_height="50dp"-->
+			<!--android:layout_gravity="center"-->
+			<!--android:background="@drawable/round_button"-->
+			<!--android:contentDescription="@string/record_button_desc"-->
+			<!--app:srcCompat="@drawable/ic_mic_white_24dp" />-->
+		<!--<LinearLayout-->
+			<!--android:id="@+id/playbackLayout"-->
+			<!--android:layout_width="match_parent"-->
+			<!--android:layout_height="wrap_content"-->
+			<!--android:background="#000"-->
+			<!--android:orientation="horizontal"-->
+			<!--android:visibility="gone">-->
+			<!--<TextView -->
+				<!--android:id="@+id/recordingTimer"-->
+				<!--android:layout_width="0dp"-->
+				<!--android:layout_height="match_parent"-->
+				<!--android:layout_gravity="start"-->
+				<!--android:layout_marginStart="25dp"-->
+				<!--android:layout_marginEnd="25dp"-->
+				<!--android:layout_weight="7"-->
+				<!--android:background="@android:color/black"-->
+				<!--android:text="@string/Default_Timer"-->
+				<!--android:textAlignment="center"-->
+				<!--android:textColor="@android:color/white"-->
+				<!--android:textSize="35sp" />-->
+			<!--<ImageButton-->
+				<!--android:id="@+id/pauseButton"-->
+				<!--android:layout_width="50dp"-->
+				<!--android:layout_height="50dp"-->
+				<!--android:layout_gravity="center"-->
+				<!--android:layout_marginEnd="5dp"-->
+				<!--android:background="@drawable/round_button"-->
+				<!--android:contentDescription="@string/pause_button_desc"-->
+				<!--app:srcCompat="@drawable/ic_pause_white_24dp" />-->
+			<!--<ImageButton-->
+				<!--android:id="@+id/stopButton"-->
+				<!--android:layout_width="50dp"-->
+				<!--android:layout_height="50dp"-->
+				<!--android:layout_gravity="center"-->
+				<!--android:layout_marginStart="5dp"-->
+				<!--android:layout_marginEnd="25dp"-->
+				<!--android:background="@drawable/round_button"-->
+				<!--android:contentDescription="@string/pause_button_desc"-->
+				<!--app:srcCompat="@drawable/ic_stop_white_24dp" />-->
+		<!--</LinearLayout>-->
+	<!--</LinearLayout>-->
+</RelativeLayout>

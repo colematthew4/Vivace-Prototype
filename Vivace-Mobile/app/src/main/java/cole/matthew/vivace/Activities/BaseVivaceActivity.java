@@ -7,10 +7,10 @@ import android.support.v7.widget.Toolbar;
 import cole.matthew.vivace.Fragments.ToolbarFragment;
 import cole.matthew.vivace.R;
 
-public abstract class BaseVivaceActivity extends AppCompatActivity implements ToolbarFragment.OnFragmentInteractionListener {
+public abstract class BaseVivaceActivity extends AppCompatActivity implements IVivaceActivity {
     /** Set up the {@link android.app.ActionBar}, if the API is available. */
-    protected void setupActionBar() {
-        ToolbarFragment toolbarFragment = (ToolbarFragment)getSupportFragmentManager().findFragmentById(R.id.toolbarFragment);
+    public void setupActionBar() {
+        ToolbarFragment toolbarFragment = (ToolbarFragment)getFragmentManager().findFragmentById(R.id.toolbarFragment);
         Toolbar toolbar = (Toolbar)toolbarFragment.getView();
         setSupportActionBar(toolbar);
 

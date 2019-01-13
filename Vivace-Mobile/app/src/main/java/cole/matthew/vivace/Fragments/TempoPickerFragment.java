@@ -16,19 +16,17 @@ import cole.matthew.vivace.R;
 
 /**
  * <p>
- *     This is an extension of the DialogFragment that shows the different Time Signatures that Vivace
- *     can create sheet music for.
+ * This is an extension of the DialogFragment that shows the different Time Signatures that Vivace
+ * can create sheet music for.
  * </p>
  * <p>
- *     NOTE: In order for this class to be used, the calling Activity MUST inherit the
- *     {@link NoticeTempoDialogListener} interface, or it will cause a runtime exception
- *     (see {@link #onAttach(Context)}).
+ * NOTE: In order for this class to be used, the calling Activity MUST inherit the
+ * {@link NoticeTempoDialogListener} interface, or it will cause a runtime exception
+ * (see {@link #onAttach(Context)}).
  * </p>
  */
-public class TempoPickerFragment extends DialogFragment
-{
-    public interface NoticeTempoDialogListener
-    {
+public class TempoPickerFragment extends DialogFragment {
+    public interface NoticeTempoDialogListener {
         /**
          * A callback method for receiving the
          * {@link android.app.AlertDialog.Builder#setPositiveButton(CharSequence, DialogInterface.OnClickListener)}
@@ -53,14 +51,11 @@ public class TempoPickerFragment extends DialogFragment
     private final String TAG = "TempoPickerFragment";
     private NoticeTempoDialogListener _noticeDialogListener;
     private int _tempo;
-    private DialogInterface.OnClickListener _onClickListener = new DialogInterface.OnClickListener()
-    {
+    private DialogInterface.OnClickListener _onClickListener = new DialogInterface.OnClickListener() {
         /** {@inheritDoc} */
         @Override
-        public void onClick(DialogInterface dialog, int which)
-        {
-            switch (which)
-            {
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which) {
                 case DialogInterface.BUTTON_POSITIVE:
                     _noticeDialogListener.onTempoDialogPositiveClick(_tempo);
                     dialog.dismiss();
@@ -77,8 +72,7 @@ public class TempoPickerFragment extends DialogFragment
 
     /** {@inheritDoc} */
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState)
-    {
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
         Bundle arguments = savedInstanceState;
         if (arguments == null)
             arguments = getArguments();
@@ -92,19 +86,14 @@ public class TempoPickerFragment extends DialogFragment
         tempoPicker.setMaxValue(218);
         tempoPicker.setMinValue(40);
         tempoPicker.setValue(arguments.getInt("TempoValue"));
-        tempoPicker.setOnScrollListener(new NumberPicker.OnScrollListener()
-        {
-            @Override
-            public void onScrollStateChange(NumberPicker view, int scrollState)
-            {
-                if (scrollState == SCROLL_STATE_IDLE)
-                    _tempo = view.getValue();
-            }
+        tempoPicker.setOnScrollListener((view1, scrollState) -> {
+            if (scrollState == NumberPicker.OnScrollListener.SCROLL_STATE_IDLE)
+                _tempo = view1.getValue();
         });
 
         return builder.setView(view)
                       .setTitle("Pick the Tempo")
-                      .setIcon(R.drawable.tempo_marker)
+                      .setIcon(R.drawable.ic_tempo_marker)
                       .setPositiveButton("Select", _onClickListener)
                       .setNegativeButton("Cancel", _onClickListener)
                       .create();
@@ -112,18 +101,17 @@ public class TempoPickerFragment extends DialogFragment
 
     /** {@inheritDoc} */
     @Override
-    public void onAttach(Context context)
-    {
+    public void onAttach(Context context) {
         super.onAttach(context);
 
-        try
-        {
+        try {
             _noticeDialogListener = (NoticeTempoDialogListener)context;
         }
-        catch (ClassCastException e)    // The activity doesn't implement the interface, throw exception
-        {
+        catch (ClassCastException e) {
             String message = context.toString() + " must implement NoticeTempoDialogListener";
             Log.d(TAG, "onAttach: " + message);
+
+            // The activity doesn't implement the interface, throw exception
             throw new ClassCastException(message);
         }
     }

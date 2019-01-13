@@ -114,7 +114,7 @@ public class MainActivity extends BaseVivaceActivity
         Log.d(APPLICATION_TAG, "MainActivity - onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ToolbarFragment toolbarFragment = (ToolbarFragment)getSupportFragmentManager().findFragmentById(R.id.toolbarFragment);
+        ToolbarFragment toolbarFragment = (ToolbarFragment)getFragmentManager().findFragmentById(R.id.toolbarFragment);
         Toolbar toolbar = (Toolbar)toolbarFragment.getView();
         setSupportActionBar(toolbar);
 
@@ -128,25 +128,25 @@ public class MainActivity extends BaseVivaceActivity
         //        _score = new Pattern();
         _scorePartWise = ScorePartWise.createInstance(this, _timeSignature, _bpm);
 
-        _tempoTextView = findViewById(R.id.tempo);
-        _tempoTextView.setText(String.format("%d BPM", _bpm));
-        _tempoTextView.setOnClickListener(view -> {
-              Bundle arguments = new Bundle();
-              arguments.putInt("TempoValue", _bpm);
-              TempoPickerFragment tempoPickerFragment = new TempoPickerFragment();
-              tempoPickerFragment.setArguments(arguments);
-              tempoPickerFragment.show(getFragmentManager(), "TempoPicker");
-          });
-
-        _timeSignatureTextView = findViewById(R.id.timeSignSelector);
-        _timeSignatureTextView.setText(_timeSignature.toString());
-        _timeSignatureTextView.setOnClickListener(view -> {
-            Bundle arguments = new Bundle();
-            arguments.putString("TimeSignValue", _timeSignature.toString());
-            TimeSignaturePickerFragment timeSignPickerFragment = new TimeSignaturePickerFragment();
-            timeSignPickerFragment.setArguments(arguments);
-            timeSignPickerFragment.show(getFragmentManager(), "TempoPicker");
-        });
+//        _tempoTextView = findViewById(R.id.tempo);
+//        _tempoTextView.setText(String.format("%d BPM", _bpm));
+//        _tempoTextView.setOnClickListener(view -> {
+//              Bundle arguments = new Bundle();
+//              arguments.putInt("TempoValue", _bpm);
+//              TempoPickerFragment tempoPickerFragment = new TempoPickerFragment();
+//              tempoPickerFragment.setArguments(arguments);
+//              tempoPickerFragment.show(getFragmentManager(), "TempoPicker");
+//          });
+//
+//        _timeSignatureTextView = findViewById(R.id.timeSignSelector);
+//        _timeSignatureTextView.setText(_timeSignature.toString());
+//        _timeSignatureTextView.setOnClickListener(view -> {
+//            Bundle arguments = new Bundle();
+//            arguments.putString("TimeSignValue", _timeSignature.toString());
+//            TimeSignaturePickerFragment timeSignPickerFragment = new TimeSignaturePickerFragment();
+//            timeSignPickerFragment.setArguments(arguments);
+//            timeSignPickerFragment.show(getFragmentManager(), "TempoPicker");
+//        });
 
         _scoreUI = findViewById(R.id.scoreUI);
         //        _recordButton = findViewById(R.id.recordButton);
@@ -404,11 +404,12 @@ public class MainActivity extends BaseVivaceActivity
                     startActivityForResult(Intent.createChooser(shareIntent, "Share Your Recording"), 3461);
                 }
                 catch (IOException | StorageNotReadableException e) {
-                    new AlertDialog.Builder(this).setTitle("Error Encountered")
-                                                 .setMessage("Vivace was unable to share your recording.")
-                                                 .setPositiveButton("Ok", (dialog, which) -> dialog.dismiss())
-                                                 .create()
-                                                 .show();
+                    new AlertDialog.Builder(this)
+                            .setTitle("Error Encountered")
+                            .setMessage("Vivace was unable to share your recording.")
+                            .setPositiveButton("Ok", (dialog, which) -> dialog.dismiss())
+                            .create()
+                            .show();
                 }
 
                 break;
@@ -425,7 +426,7 @@ public class MainActivity extends BaseVivaceActivity
     /** {@inheritDoc} */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults) {
-        ToolbarFragment toolbarFragment = (ToolbarFragment)getSupportFragmentManager().findFragmentById(R.id.toolbarFragment);
+        ToolbarFragment toolbarFragment = (ToolbarFragment)getFragmentManager().findFragmentById(R.id.toolbarFragment);
         Toolbar toolbar = (Toolbar)toolbarFragment.getView();
 
         switch (requestCode) {
@@ -494,11 +495,6 @@ public class MainActivity extends BaseVivaceActivity
     /** {@inheritDoc} */
     @Override
     public void onTimeSignDialogNegativeClick(String timeSign) {
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void onFragmentInteraction(Uri uri) {
     }
 
     /** {@inheritDoc} */

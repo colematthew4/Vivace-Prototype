@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto">
+	
+	<ListPreference
+		android:title="Time Signature"
+		android:key="audio_setting_time_sign"
+		android:defaultValue="-1"
+		android:entries="@array/time_signatures"
+		android:entryValues="@array/time_signature_values"
+		android:icon="@drawable/ic_time_sig"
+		android:positiveButtonText="@null"
+		android:negativeButtonText="@null" />
+	
+	<cole.matthew.vivace.Fragments.TempoPickerPreference
+		android:title="Tempo"
+		android:key="audio_setting_tempo"
+		android:defaultValue="120"
+		android:icon="@drawable/ic_tempo_marker"
+		android:dialogIcon="@drawable/ic_tempo_marker"
+		android:dialogLayout="@layout/tempo_picker"
+		android:dialogTitle="Pick The Tempo"
+		app:maxTempo="218"
+		app:minTempo="40" />
+	
+</PreferenceScreen>

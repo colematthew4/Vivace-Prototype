@@ -11,15 +11,17 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import cole.matthew.vivace.Exceptions.StorageNotReadableException;
+import cole.matthew.vivace.Exceptions.StorageNotWritableException;
 import cole.matthew.vivace.Helpers.RecordingListRecyclerViewAdapter;
 import cole.matthew.vivace.Helpers.RecyclerViewItemTouchHelper;
 import cole.matthew.vivace.Models.Recordings.IRecording;
 import cole.matthew.vivace.R;
-import cole.matthew.vivace.dummy.DummyContent.DummyItem;
 
 /**
  * A fragment representing a list of Items.
@@ -40,6 +42,7 @@ public class RecordingListFragment extends Fragment implements RecyclerViewItemT
     public RecordingListFragment() {
     }
 
+    /** {@inheritDoc} */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -69,38 +72,47 @@ public class RecordingListFragment extends Fragment implements RecyclerViewItemT
             recyclerView.addItemDecoration(new DividerItemDecoration(_context, DividerItemDecoration.VERTICAL));
             recyclerView.setAdapter(_adapter);
 
-            ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerViewItemTouchHelper(0, ItemTouchHelper.LEFT, this);
+            ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerViewItemTouchHelper(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, this);
             new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
         }
 
         return view;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void onDetach() {
         super.onDetach();
         _listener = null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
-        if (viewHolder instanceof RecordingListRecyclerViewAdapter.RecordingViewHolder) {
-            // get the removed item name to display it in snack bar
-            String name = _adapter.getRecording(viewHolder.getAdapterPosition()).getName();
+        final int deletedIndex = viewHolder.getAdapterPosition();
+        // get the removed item name to display it in snack bar
+        String name = _adapter.getRecording(deletedIndex).getName();
 
-            // backup of removed item for undo purpose
-            final IRecording deletedRecording = _adapter.getRecording(viewHolder.getAdapterPosition());
-            final int deletedIndex = viewHolder.getAdapterPosition();
+        // remove the item from recycler view
+        final IRecording deletedRecording = _adapter.removeRecording(deletedIndex);
 
-            // remove the item from recycler view
-            _adapter.deleteRecording(deletedIndex);
-
-            // showing snack bar with undo option
-            Snackbar snackbar = Snackbar.make(viewHolder.itemView, name + " removed from cart!", Snackbar.LENGTH_LONG);
-            snackbar.setAction("UNDO", view -> _adapter.restoreItem(deletedRecording, deletedIndex));
-            snackbar.setActionTextColor(Color.YELLOW);
-            snackbar.show();
-        }
+        // showing snack bar with undo option
+        Snackbar snackbar = Snackbar.make(viewHolder.itemView, name + " removed from cart!", Snackbar.LENGTH_LONG);
+        snackbar.addCallback(new Snackbar.Callback() {
+            /** {@inheritDoc} */
+            @Override
+            public void onDismissed(Snackbar snackbar, int event) {
+                try {
+                    _adapter.deleteRecording(deletedRecording);
+                }
+                catch (StorageNotReadableException | StorageNotWritableException e) {
+                    Log.e(getString(R.string.application_tag), e.getMessage());
+                }
+            }
+        });
+        snackbar.setAction("UNDO", view -> _adapter.restoreItem(deletedRecording, deletedIndex));
+        snackbar.setActionTextColor(Color.YELLOW);
+        snackbar.show();
     }
 
     /**
@@ -115,6 +127,6 @@ public class RecordingListFragment extends Fragment implements RecyclerViewItemT
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+        void onListFragmentInteraction(IRecording recording);
     }
 }

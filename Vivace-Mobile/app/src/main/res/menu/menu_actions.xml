@@ -7,18 +7,18 @@
 		android:id="@+id/action_open"
 		android:icon="@drawable/ic_open_black_24dp"
 		android:title="@string/open_actionitem"
-		app:showAsAction="ifRoom|collapseActionView"
-		app:actionViewClass="android.widget.Button" />
+		android:orderInCategory="0"
+		app:showAsAction="always" />
 	<item
 		android:id="@+id/action_share"
 		android:icon="@drawable/ic_share_black_24dp"
 		android:title="@string/share"
-		app:showAsAction="ifRoom|collapseActionView"
-		app:actionViewClass="android.widget.Button" />
+		android:orderInCategory="1"
+		app:showAsAction="always" />
 	<item
 		android:id="@+id/action_settings"
-		android:icon="@drawable/ic_settings_black_24dp"
+		android:icon="@drawable/overflow_menu_icon"
 	    android:title="@string/settings_actionitem"
-	    app:showAsAction="ifRoom|collapseActionView"
-		app:actionViewClass="android.widget.Button" />
+		android:orderInCategory="2"
+	    app:showAsAction="always" />
 </menu>

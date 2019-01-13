@@ -17,9 +17,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cole.matthew.vivace.Activities.SettingsActivity;
+import cole.matthew.vivace.BuildConfig;
 import cole.matthew.vivace.Exceptions.InsufficientStorageException;
 import cole.matthew.vivace.Exceptions.InvalidFileException;
 import cole.matthew.vivace.Exceptions.StorageNotReadableException;
+import cole.matthew.vivace.Exceptions.StorageNotWritableException;
 import cole.matthew.vivace.Models.Recordings.IRecording;
 import cole.matthew.vivace.Models.Recordings.RecordingFactory;
 
@@ -48,7 +50,7 @@ public class FileStore {
                 recordingCount = storageLocation.list().length;
             }
             catch (StorageNotReadableException e) {
-                e.printStackTrace();
+                Log.e(TAG, e.getMessage());
             }
         }
 
@@ -76,7 +78,7 @@ public class FileStore {
                 }
             }
             catch (StorageNotReadableException | FileNotFoundException | InvalidFileException e) {
-                e.printStackTrace();
+                Log.e(TAG, e.getMessage());
             }
         }
 
@@ -172,10 +174,13 @@ public class FileStore {
      * way if Vivace is uninstalled the files it saved will remain on the device.
      */
     public void transferStorageToPublic()
-            throws InsufficientStorageException, StorageNotReadableException
+            throws InsufficientStorageException, StorageNotReadableException, StorageNotWritableException
     {
         File publicStorageDir = getPublicStorageDir();
         File privateStorageDir = getPrivateStorageDir();
+
+        if (!isExternalStorageWritable())
+            throw new StorageNotWritableException("Vivace requires your permission to write files to your device.");
 
         if (publicStorageDir.getFreeSpace() > 0.1 * publicStorageDir.getTotalSpace()) {
             //            new AsyncTask<Object, Object, Object>()
@@ -218,8 +223,7 @@ public class FileStore {
                             outputStream.write(buf, 0, length);
                     }
 
-                    // TODO implement retry system?
-                    file.delete();
+                    delete(file);
                 }
                 catch (java.io.IOException e) {
                     Log.e(TAG, e.getMessage());
@@ -235,10 +239,13 @@ public class FileStore {
      * way if Vivace is uninstalled the files it saved will also be removed.
      */
     public void transferStorageToPrivate()
-            throws InsufficientStorageException, StorageNotReadableException
+            throws InsufficientStorageException, StorageNotReadableException, StorageNotWritableException
     {
         final File publicStorageDir = getPublicStorageDir();
         final File privateStorageDir = getPrivateStorageDir();
+
+        if (!isExternalStorageWritable())
+            throw new StorageNotWritableException("Vivace requires your permission to write files to your device.");
 
         if (privateStorageDir.getFreeSpace() > 0.1 * privateStorageDir.getTotalSpace()) {
             //            new AsyncTask<Object, Object, Object>()
@@ -281,8 +288,7 @@ public class FileStore {
                             outputStream.write(buf, 0, length);
                     }
 
-                    // TODO: implementry retry system?
-                    file.delete();
+                    delete(file);
                 }
                 catch (java.io.IOException e) {
                     Log.e(TAG, e.getMessage());
@@ -291,5 +297,37 @@ public class FileStore {
         }
         else
             throw new InsufficientStorageException("You do not have enough storage space to transfer files from public to private storage.");
+    }
+
+    /**
+     * Permanently deletes a file from the filesystem.
+     * @param file The file to delete from the filesystem.
+     * @throws StorageNotReadableException if the application isn't given permission to read the filesystem.
+     * @throws StorageNotWritableException if the application isn't given permission to write to the filesystem.
+     */
+    public void delete(File file)
+            throws StorageNotWritableException, StorageNotReadableException
+    {
+        if (!isExternalStorageWritable())
+            throw new StorageNotWritableException("Vivace requires your permission to write files to your device.");
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(_context);
+        final boolean usePublicStorage = sharedPreferences.getBoolean(SettingsActivity.KEY_FILE_STORAGE_LOCATION, false);
+
+        File storageDir = usePublicStorage ? getPublicStorageDir() : getPrivateStorageDir();
+        for (File storedFile : storageDir.listFiles()) {
+            if (storedFile.compareTo(file) == 0) {
+                int retries = 0;
+                boolean deleted;
+
+                do {
+                    // TODO: remove debug check
+                    Log.i(TAG, String.format("Deleting %s from the filesystem.", file.getName()));
+                    deleted = BuildConfig.DEBUG || file.delete();
+                } while (retries++ < 3 && !deleted);
+
+                break;
+            }
+        }
     }
 }

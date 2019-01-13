@@ -5,6 +5,6 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	tools:context=".Fragments.OpenRecordingActivityFragment"
-	tools:showIn="@layout/activity_open_recording">
+	tools:showIn="@layout/open_recording_layout">
 	
 </android.support.constraint.ConstraintLayout>

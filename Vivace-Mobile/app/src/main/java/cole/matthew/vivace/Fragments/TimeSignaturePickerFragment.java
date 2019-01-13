@@ -89,7 +89,7 @@ public class TimeSignaturePickerFragment extends DialogFragment
         if (arguments == null)
             arguments = getArguments();
 
-        TimeSignatures = getResources().getStringArray(R.array.timeSignatures);
+        TimeSignatures = getResources().getStringArray(R.array.time_signatures);
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
         @SuppressLint("InflateParams")
