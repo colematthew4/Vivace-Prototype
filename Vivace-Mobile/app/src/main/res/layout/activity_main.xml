@@ -24,22 +24,10 @@
 		
 		<include
 			layout="@layout/audio_settings_side_layout"
+			android:id="@+id/audio_settings_side_layout"
 			android:layout_width="310dp"
 			android:layout_height="match_parent" />
-		<!--<LinearLayout-->
-			<!--xmlns:android="http://schemas.android.com/apk/res/android"-->
-			<!--android:layout_width="310dp"-->
-			<!--android:layout_height="match_parent"-->
-			<!--android:layout_gravity="end"-->
-			<!--android:orientation="vertical"-->
-			<!--android:fitsSystemWindows="true">-->
-			<!--<TextView-->
-				<!--android:layout_width="wrap_content"-->
-				<!--android:layout_height="wrap_content"-->
-				<!--android:text="This is on the right"-->
-				<!--android:textSize="24sp"-->
-				<!--android:background="@color/colorAccent" />-->
-		<!--</LinearLayout>-->
+
 	</RelativeLayout>
 	
 </android.support.v4.widget.DrawerLayout>

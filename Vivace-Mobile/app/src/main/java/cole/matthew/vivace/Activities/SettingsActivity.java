@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
@@ -40,7 +41,7 @@ import cole.matthew.vivace.R;
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
  * API Guide</a> for more information on developing a Settings UI.
  */
-public class SettingsActivity extends AppCompatPreferenceActivity implements IVivaceActivity {
+public final class SettingsActivity extends AppCompatPreferenceActivity implements IVivaceActivity {
     public static final String KEY_FILE_STORAGE_NAME = "file_storage_name";
     public static final String KEY_FILE_STORAGE_TYPE = "file_storage_type";
     public static final String KEY_FILE_STORAGE_LOCATION = "file_storage_location";
@@ -197,9 +198,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements IVi
             // guidelines.
             bindPreferenceSummaryToValue(findPreference(SettingsActivity.KEY_FILE_STORAGE_NAME));
             bindPreferenceSummaryToValue(findPreference(SettingsActivity.KEY_FILE_STORAGE_TYPE));
-            findPreference(
-                    SettingsActivity.KEY_FILE_STORAGE_LOCATION).setOnPreferenceChangeListener(
-                    sBindSwitchPreferenceValueListener);
+            findPreference(SettingsActivity.KEY_FILE_STORAGE_LOCATION).setOnPreferenceChangeListener(sBindSwitchPreferenceValueListener);
+            findPreference("oss_licenses").setOnPreferenceClickListener(preference -> {
+                startActivity(new Intent(getActivity(), OpenSourceSoftwareListActivity.class));
+                return true;
+            });
         }
     }
 }

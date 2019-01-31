@@ -40,5 +40,6 @@ public final class AudioSettingsPreferenceFragment extends BaseVivacePreferenceF
         // Bind the summaries of List/Switch preferences to their values. When their values change,
         // their summaries are updated to reflect the new value, per the Android Design guidelines.
         bindPreferenceSummaryToValue(findPreference("audio_setting_time_sign"));
+        bindPreferenceSummaryToValue(findPreference("audio_setting_instrument"));
     }
 }

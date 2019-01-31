@@ -3,7 +3,7 @@
     <!-- These settings headers are only used on tablets. -->
 	
 	<header
-		android:fragment="cole.matthew.vivace.Activities.SettingsActivity$GeneralPreferenceFragment"
+		android:fragment="cole.matthew.vivace.Activities.SettingsActivity$VivaceSettingsPreferenceFragment"
 		android:icon="@drawable/ic_music_file_black_24dp"
 		android:title="@string/pref_header_general" />
 

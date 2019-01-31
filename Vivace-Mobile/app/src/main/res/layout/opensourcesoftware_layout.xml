@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:nestedScrollingEnabled="true">
+	<TextView
+		android:id="@+id/oss_name"
+		android:layout_width="match_parent"
+		android:layout_height="48dp"
+		android:gravity="center_vertical"
+		android:paddingStart="16dp"
+		android:paddingEnd="16dp"
+		android:textColor="@android:color/black"
+		android:textSize="16sp"
+		android:clickable="true"
+		android:focusable="true"
+		android:drawableEnd="@drawable/expand_arrow_drop_transition" />
+	<LinearLayout
+		android:id="@+id/oss_content"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:layout_below="@id/oss_name"
+		android:layout_marginBottom="8dp"
+		android:paddingStart="20dp"
+		android:paddingEnd="20dp"
+		android:orientation="vertical">
+		<View
+			android:layout_width="match_parent"
+			android:layout_height="1dp"
+			android:background="#C8C8C8" />
+		<TextView
+			android:id="@+id/repo_link"
+			android:layout_width="match_parent"
+			android:layout_height="48dp"
+			android:gravity="center_vertical"
+			android:linksClickable="true"
+			android:clickable="true"
+			android:focusable="true" />
+	    <View
+		    android:layout_width="match_parent"
+		    android:layout_height="1dp"
+		    android:background="#C8C8C8"
+		    android:layout_marginStart="10dp"
+		    android:layout_marginEnd="10dp" />
+		<LinearLayout
+			android:id="@+id/license"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical" />
+	</LinearLayout>
+</RelativeLayout>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<oss>
+	<item>
+		<name>Icons8</name>
+		<url>https://icons8.com</url>
+		<license>Creative Commons Attribution-NoDerivs 3.0 Unported License</license>
+	</item>
+	<item>
+		<name>Material Design</name>
+		<url>https://github.com/google/material-design-icons</url>
+		<license>Apache License v2.0</license>
+	</item>
+</oss>

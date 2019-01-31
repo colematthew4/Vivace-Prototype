@@ -23,4 +23,16 @@
 		app:maxTempo="218"
 		app:minTempo="40" />
 	
+	<ListPreference
+		android:title="Instrument"
+		android:key="audio_setting_instrument"
+		android:defaultValue="-1"
+		android:entries="@array/instruments"
+		android:entryValues="@array/instrument_values"
+		android:icon="@drawable/piano"
+		android:positiveButtonText="@null"
+		android:negativeButtonText="@null" />
+	
+	<!--Microphone Sensitivity-->
+	
 </PreferenceScreen>

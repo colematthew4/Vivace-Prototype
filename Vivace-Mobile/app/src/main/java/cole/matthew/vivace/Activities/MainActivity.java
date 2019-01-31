@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.Locale;
 
 import cole.matthew.vivace.BuildConfig;
 import cole.matthew.vivace.Exceptions.StorageNotReadableException;
@@ -98,17 +99,15 @@ public class MainActivity extends BaseVivaceActivity
     /**
      * This provides the functionality of Vivace's recording timer.
      */
-    @SuppressLint("DefaultLocale")
     private Runnable timerRunnable = () -> {
         long millis = System.currentTimeMillis() - _startTime;
         int seconds = (int)(millis / 1000) % 60;
         int minutes = seconds / 60;
-        _recordingTimer.setText(String.format("%02d:%02d", minutes, seconds));
+        _recordingTimer.setText(String.format(Locale.US, "%02d:%02d", minutes, seconds));
 //        timerHandler.postDelayed(, 500);
     };
 
     /** {@inheritDoc} */
-    @SuppressLint("DefaultLocale")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(APPLICATION_TAG, "MainActivity - onCreate");
@@ -121,12 +120,12 @@ public class MainActivity extends BaseVivaceActivity
         if (savedInstanceState != null)
             IsRecording = savedInstanceState.getBoolean(IS_RECORDING_TAG, false);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        _timeSignature = new TimeSignature(preferences.getString(TIME_SIGNATURE_TAG, "4/4"));
-        _bpm = preferences.getInt(BPM_TAG, 120);
-        _startTime = preferences.getLong(STARTTIME_TAG, 0);
+//        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+//        _timeSignature = new TimeSignature(preferences.getString(TIME_SIGNATURE_TAG, "4/4"));
+//        _bpm = preferences.getInt(BPM_TAG, 120);
+//        _startTime = preferences.getLong(STARTTIME_TAG, 0);
         //        _score = new Pattern();
-        _scorePartWise = ScorePartWise.createInstance(this, _timeSignature, _bpm);
+//        _scorePartWise = ScorePartWise.createInstance(this, _timeSignature, _bpm);
 
 //        _tempoTextView = findViewById(R.id.tempo);
 //        _tempoTextView.setText(String.format("%d BPM", _bpm));
@@ -318,11 +317,11 @@ public class MainActivity extends BaseVivaceActivity
     protected void onPause() {
         Log.d(APPLICATION_TAG, "MainActivity - OnPause");
         timerHandler.removeCallbacks(timerRunnable);
-        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-        editor.putString(TIME_SIGNATURE_TAG, _timeSignature.toString());
-        editor.putInt(BPM_TAG, _bpm);
-        editor.putLong(STARTTIME_TAG, _startTime);
-        editor.apply();
+//        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+//        editor.putString(TIME_SIGNATURE_TAG, _timeSignature.toString());
+//        editor.putInt(BPM_TAG, _bpm);
+//        editor.putLong(STARTTIME_TAG, _startTime);
+//        editor.apply();
         super.onPause();
     }
 

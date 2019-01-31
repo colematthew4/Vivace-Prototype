@@ -11,6 +11,25 @@
 	android:background="@drawable/border"
 	android:orientation="vertical">
 	
+	<android.support.design.widget.AppBarLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:theme="@style/AppTheme.AppBarOverlay">
+	
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingStart="20sp"
+			android:paddingEnd="@dimen/padd_10"
+			android:paddingTop="@dimen/padd_10"
+			android:paddingBottom="@dimen/padd_10"
+			android:text="@string/audio_settings_title"
+			android:textSize="20sp"
+			android:textColor="@android:color/black"
+			android:contentDescription="@string/audio_settings_title" />
+	
+	</android.support.design.widget.AppBarLayout>
+	
 	<fragment
 		android:id="@+id/audioSettingsFragment"
 		android:name="cole.matthew.vivace.Fragments.AudioSettingsPreferenceFragment"

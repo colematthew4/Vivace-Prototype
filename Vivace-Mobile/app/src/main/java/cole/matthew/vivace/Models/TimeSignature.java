@@ -1,23 +1,23 @@
 package cole.matthew.vivace.Models;
 
-import android.annotation.SuppressLint;
+import android.support.annotation.NonNull;
 
 import org.apache.commons.math3.exception.MathIllegalArgumentException;
 import org.apache.commons.math3.exception.util.LocalizedFormats;
 import org.apache.commons.math3.util.ArithmeticUtils;
 import org.jetbrains.annotations.NotNull;
 
-public class TimeSignature
-{
+public class TimeSignature {
     private int _beatsPerMeasure;
     private int _beatUnit;
 
     /**
      * Constructs a TimeSignature with the given beats per measure and beat unit.
      *
-     * @param beats How many beats constitute one measure.
+     * @param beats    How many beats constitute one measure.
      * @param beatUnit The note value that represents one beat.
-     * @throws MathIllegalArgumentException beatUnit isn't a power of 2.
+     *
+     * @exception MathIllegalArgumentException beatUnit isn't a power of 2.
      */
     public TimeSignature(int beats, int beatUnit)
             throws MathIllegalArgumentException
@@ -29,33 +29,34 @@ public class TimeSignature
      * Constructs a TimeSignature with the given beats per measure and beat unit.
      *
      * @param timeSignature A string representation of the time signature. Must be in the form "%d/%d".
-     * @throws IllegalArgumentException The string passed in does not match the format required of a time signature.
+     *
+     * @exception IllegalArgumentException The string passed in does not match the format required of a time signature.
      */
     public TimeSignature(@NotNull String timeSignature)
             throws IllegalArgumentException
     {
         if (!timeSignature.matches("\\d/\\d"))
-            throw new IllegalArgumentException(String.format("%s does not represent a valid time signature.", timeSignature));
+            throw new IllegalArgumentException(
+                    String.format("%s does not represent a valid time signature.", timeSignature));
 
-        try
-        {
+        try {
             int divide = timeSignature.indexOf('/');
             int beats = Integer.valueOf(timeSignature.substring(0, divide));
             int beatUnit = Integer.valueOf(timeSignature.substring(divide + 1));
             setTimeSignature(beats, beatUnit);
         }
-        catch (IndexOutOfBoundsException | NumberFormatException e)
-        {
-            throw new IllegalArgumentException(String.format("%s does not represent a valid time signature.", timeSignature));
+        catch (IndexOutOfBoundsException | NumberFormatException e) {
+            throw new IllegalArgumentException(timeSignature + " does not represent a valid time signature.");
         }
     }
 
     /**
      * Sets the values of the time signature.
      *
-     * @param beats How many beats constitute one measure.
+     * @param beats    How many beats constitute one measure.
      * @param beatUnit The note value that represents one beat.
-     * @throws MathIllegalArgumentException beatUnit isn't a power of 2.
+     *
+     * @exception MathIllegalArgumentException beatUnit isn't a power of 2.
      */
     private void setTimeSignature(int beats, int beatUnit)
             throws MathIllegalArgumentException
@@ -68,21 +69,18 @@ public class TimeSignature
     }
 
     /** Gets how many beats constitute one measure. */
-    public int getBeatsPerMeasure()
-    {
+    public int getBeatsPerMeasure() {
         return _beatsPerMeasure;
     }
 
     /** Gets the note value that represents one beat. */
-    public int getBeatUnit()
-    {
+    public int getBeatUnit() {
         return _beatUnit;
     }
 
     /** Gets a string representation of the time signature. */
-    @SuppressLint("DefaultLocale")
-    public String toString()
-    {
-        return String.format("%d/%d", _beatsPerMeasure, _beatUnit);
+    @NonNull
+    public String toString() {
+        return _beatsPerMeasure + "/" + _beatUnit;
     }
 }
