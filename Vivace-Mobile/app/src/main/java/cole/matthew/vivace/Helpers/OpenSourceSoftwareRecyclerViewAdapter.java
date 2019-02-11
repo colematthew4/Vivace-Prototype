@@ -20,22 +20,29 @@ import cole.matthew.vivace.R;
 public class OpenSourceSoftwareRecyclerViewAdapter extends RecyclerView.Adapter<OpenSourceSoftwareViewHolder> {
     private final List<OpenSourceSoftware> _oss;
 
+    /**
+     * Creates an instance of an {@link OpenSourceSoftwareRecyclerViewAdapter} with the given contents.
+     * @param oss The {@link OpenSourceSoftware} to insert into the {@link RecyclerView}.
+     */
     public OpenSourceSoftwareRecyclerViewAdapter(@NotNull List<OpenSourceSoftwareContent.OpenSourceSoftware> oss) {
         _oss = oss;
     }
 
+    /** {@inheritDoc} */
     @NonNull
     @Override
     public OpenSourceSoftwareViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.opensourcesoftware_layout, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.oss_layout, parent, false);
         return new OpenSourceSoftwareViewHolder(view);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void onBindViewHolder(@NonNull final OpenSourceSoftwareViewHolder holder, int position) {
         holder.setSoftware(_oss.get(position));
     }
 
+    /** {@inheritDoc} */
     @Override
     public int getItemCount() {
         return _oss.size();

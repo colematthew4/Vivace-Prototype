@@ -9,7 +9,7 @@ public class OpenSourceSoftwareListActivity extends BaseVivaceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.opensourcesoftware_activity_layout);
+        setContentView(R.layout.oss_activity_layout);
         setupActionBar();
     }
 }

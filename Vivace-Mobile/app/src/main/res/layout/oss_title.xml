@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:paddingStart="16dp"
+	android:paddingEnd="16dp"
+	android:gravity="center_vertical"
+	android:orientation="horizontal"
+	tools:ignore="UseCompoundDrawables">
+	<!--
+		Compound Drawables are not used on the TextView because Drawables appear to be shared, so
+		when one compound drawable was rotated, Android tried to rotate all the others as well,
+		causing other drawables to be skewed at weird angles.
+	-->
+	<TextView
+		android:id="@+id/oss_name"
+		android:layout_weight="1"
+		android:layout_width="0dp"
+		android:layout_height="48dp"
+		android:gravity="center_vertical"
+		android:textColor="@android:color/black"
+		android:textSize="16sp"
+		android:clickable="true"
+		android:focusable="true" />
+	<ImageView
+		android:id="@+id/dropdown_arrow"
+		android:layout_width="24dp"
+		android:layout_height="24dp"
+		android:layout_marginStart="16dp"
+		android:layout_marginTop="12dp"
+		android:layout_marginBottom="12dp"
+		android:src="@drawable/ic_arrow_drop_down_black_24dp"
+		tools:ignore="ContentDescription" />
+	<!-- The content description is set programmatically when given the third party library -->
+</LinearLayout>

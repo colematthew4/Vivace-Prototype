@@ -36,7 +36,7 @@ public class OpenSourceSoftwareListFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.opensourcesoftware_listlayout, container, false);
+        View view = inflater.inflate(R.layout.oss_listlayout, container, false);
 
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -52,7 +52,7 @@ public class OpenSourceSoftwareListFragment extends Fragment {
                 ossList = content.getOpenSourceSoftware();
             } catch (IOException | XmlPullParserException e) {
                 // TODO: Implement logging and exception handling
-                Log.e("", e.getMessage());
+                Log.e(this.getClass().getName(), e.getMessage());
             }
 
             recyclerView.setAdapter(new OpenSourceSoftwareRecyclerViewAdapter(ossList));
