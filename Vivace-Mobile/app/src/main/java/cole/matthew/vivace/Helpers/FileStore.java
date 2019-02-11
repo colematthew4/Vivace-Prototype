@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.File;
@@ -40,7 +41,6 @@ public class FileStore {
      */
     public int getRecordingCount() {
         int recordingCount = 0;
-
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(_context);
         final boolean usePublicStorage = sharedPreferences.getBoolean(SettingsActivity.KEY_FILE_STORAGE_LOCATION, false);
 
@@ -48,8 +48,7 @@ public class FileStore {
             try {
                 File storageLocation = usePublicStorage ? getPublicStorageDir() : getPrivateStorageDir();
                 recordingCount = storageLocation.list().length;
-            }
-            catch (StorageNotReadableException e) {
+            } catch (StorageNotReadableException e) {
                 Log.e(TAG, e.getMessage());
             }
         }
@@ -64,7 +63,6 @@ public class FileStore {
      */
     public List<IRecording> getRecordings() {
         List<IRecording> recordings = new ArrayList<>();
-
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(_context);
         final boolean usePublicStorage = sharedPreferences.getBoolean(SettingsActivity.KEY_FILE_STORAGE_LOCATION, false);
 
@@ -76,8 +74,7 @@ public class FileStore {
                 for (File internalRecording : internalRecordings) {
                     recordings.add(recordingFactory.getRecording(internalRecording));
                 }
-            }
-            catch (StorageNotReadableException | FileNotFoundException | InvalidFileException e) {
+            } catch (StorageNotReadableException | FileNotFoundException | InvalidFileException e) {
                 Log.e(TAG, e.getMessage());
             }
         }
@@ -96,9 +93,9 @@ public class FileStore {
         if (VivacePermissions.hasPermission(_context, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             String state = Environment.getExternalStorageState();
             result = Environment.MEDIA_MOUNTED.equals(state);
-        }
-        else
+        } else {
             result = VivacePermissions.requestPermission(_context, VivacePermissionCodes.WRITE_EXTERNAL_STORAGE);
+        }
 
         return result;
     }
@@ -114,9 +111,9 @@ public class FileStore {
         if (VivacePermissions.hasPermission(_context, Manifest.permission.READ_EXTERNAL_STORAGE)) {
             String state = Environment.getExternalStorageState();
             result = Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
-        }
-        else
+        } else {
             result = VivacePermissions.requestPermission(_context, VivacePermissionCodes.READ_EXTERNAL_STORAGE);
+        }
 
         return result;
     }
@@ -129,18 +126,21 @@ public class FileStore {
     public File getPublicStorageDir()
             throws StorageNotReadableException
     {
-        if (!isExternalStorageReadable())
+        if (!isExternalStorageReadable()) {
             throw new StorageNotReadableException("Vivace requires your permission to save recordings to your device.");
+        }
 
         File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-        if (!storageDir.exists() && !storageDir.mkdirs())
+        if (!storageDir.exists() && !storageDir.mkdirs()) {
             Log.e(TAG, "Directory not created.");
+        }
 
         // Get the directory for the user's public pictures directory
         File file = new File(storageDir, "Recordings");
 
-        if (!file.exists() && !file.mkdirs())
+        if (!file.exists() && !file.mkdirs()) {
             Log.e(TAG, "Directory not created");
+        }
 
         return file;
     }
@@ -153,18 +153,21 @@ public class FileStore {
     public File getPrivateStorageDir()
             throws StorageNotReadableException
     {
-        if (!isExternalStorageReadable())
+        if (!isExternalStorageReadable()) {
             throw new StorageNotReadableException("Vivace requires your permission to save recordings to your device.");
+        }
 
         File storageDir = _context.getExternalFilesDir(null);
-        if (storageDir == null)
+        if (storageDir == null) {
             throw new StorageNotReadableException("No external storage available.");
+        }
 
         // Get the directory for the user's public pictures directory
         File file = new File(storageDir, "Recordings");
 
-        if (!file.exists() && !file.mkdirs())
+        if (!file.exists() && !file.mkdirs()) {
             Log.e(TAG, "Directory not created");
+        }
 
         return file;
     }
@@ -179,8 +182,9 @@ public class FileStore {
         File publicStorageDir = getPublicStorageDir();
         File privateStorageDir = getPrivateStorageDir();
 
-        if (!isExternalStorageWritable())
+        if (!isExternalStorageWritable()) {
             throw new StorageNotWritableException("Vivace requires your permission to write files to your device.");
+        }
 
         if (publicStorageDir.getFreeSpace() > 0.1 * publicStorageDir.getTotalSpace()) {
             //            new AsyncTask<Object, Object, Object>()
@@ -223,15 +227,14 @@ public class FileStore {
                             outputStream.write(buf, 0, length);
                     }
 
-                    delete(file);
-                }
-                catch (java.io.IOException e) {
+                    delete(file, privateStorageDir);
+                } catch (java.io.IOException e) {
                     Log.e(TAG, e.getMessage());
                 }
             }
-        }
-        else
+        } else {
             throw new InsufficientStorageException("You do not have enough storage space to transfer files from public to private storage.");
+        }
     }
 
     /**
@@ -244,8 +247,9 @@ public class FileStore {
         final File publicStorageDir = getPublicStorageDir();
         final File privateStorageDir = getPrivateStorageDir();
 
-        if (!isExternalStorageWritable())
+        if (!isExternalStorageWritable()) {
             throw new StorageNotWritableException("Vivace requires your permission to write files to your device.");
+        }
 
         if (privateStorageDir.getFreeSpace() > 0.1 * privateStorageDir.getTotalSpace()) {
             //            new AsyncTask<Object, Object, Object>()
@@ -288,45 +292,57 @@ public class FileStore {
                             outputStream.write(buf, 0, length);
                     }
 
-                    delete(file);
-                }
-                catch (java.io.IOException e) {
+                    delete(file, publicStorageDir);
+                } catch (java.io.IOException e) {
                     Log.e(TAG, e.getMessage());
                 }
             }
-        }
-        else
+        } else {
             throw new InsufficientStorageException("You do not have enough storage space to transfer files from public to private storage.");
+        }
     }
 
     /**
      * Permanently deletes a file from the filesystem.
-     * @param file The file to delete from the filesystem.
-     * @throws StorageNotReadableException if the application isn't given permission to read the filesystem.
-     * @throws StorageNotWritableException if the application isn't given permission to write to the filesystem.
+     *
+     * @param fileToDelete The file to delete from the filesystem.
+     *
+     * @exception StorageNotReadableException if the application isn't given permission to read the filesystem.
+     * @exception StorageNotWritableException if the application isn't given permission to write to the filesystem.
      */
-    public void delete(File file)
+    public void delete(File fileToDelete)
             throws StorageNotWritableException, StorageNotReadableException
     {
-        if (!isExternalStorageWritable())
+        if (!isExternalStorageWritable()) {
             throw new StorageNotWritableException("Vivace requires your permission to write files to your device.");
+        }
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(_context);
         final boolean usePublicStorage = sharedPreferences.getBoolean(SettingsActivity.KEY_FILE_STORAGE_LOCATION, false);
 
         File storageDir = usePublicStorage ? getPublicStorageDir() : getPrivateStorageDir();
+        delete(fileToDelete, storageDir);
+    }
+
+    /**
+     * Permanently deletes a file from the filesystem.
+     *
+     * @param fileToDelete The file to delete from the filesystem.
+     * @param storageDir   The storage directory to delete the file from.
+     */
+    private void delete(File fileToDelete, @NonNull File storageDir) {
         for (File storedFile : storageDir.listFiles()) {
-            if (storedFile.compareTo(file) == 0) {
+            if (storedFile.compareTo(fileToDelete) == 0) {
                 int retries = 0;
                 boolean deleted;
 
                 do {
                     // TODO: remove debug check
-                    Log.i(TAG, String.format("Deleting %s from the filesystem.", file.getName()));
-                    deleted = BuildConfig.DEBUG || file.delete();
+                    Log.i(TAG, "Deleting " + fileToDelete.getName() + " from the filesystem.");
+                    deleted = BuildConfig.DEBUG || fileToDelete.delete();
                 } while (retries++ < 3 && !deleted);
 
-                break;
+                return;
             }
         }
     }

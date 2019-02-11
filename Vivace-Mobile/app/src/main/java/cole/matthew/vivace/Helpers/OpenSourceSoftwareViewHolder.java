@@ -1,15 +1,20 @@
 package cole.matthew.vivace.Helpers;
 
 import android.animation.ObjectAnimator;
+import android.content.Context;
+import android.graphics.Point;
 import android.graphics.drawable.RotateDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
+import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -19,16 +24,12 @@ import cole.matthew.vivace.Models.OpenSourceSoftwareContent;
 import cole.matthew.vivace.R;
 
 public class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder {
-    private OnExpandedListener _onExpandedListener;
-    private final View _ossContainer;
     private final TextView _nameTextView;
     private final TextView _repoLinkTextView;
-    private final LinearLayout _licenseView;
+    private final WebView _licenseView;
     private final LayoutInflater _licensePartInflater;
     private final View _ossContentContainer;
-    private boolean _expanded = false;
-    private boolean _expanding = false;
-    private boolean _collapsing = false;
+    private AnimationState _animationState = AnimationState.COLLAPSED;
     private int _previousHeight = 0;
 
     /**
@@ -37,20 +38,29 @@ public class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder {
      */
     OpenSourceSoftwareViewHolder(View ossContainerView) {
         super(ossContainerView);
-        _ossContainer = ossContainerView;
         _nameTextView = ossContainerView.findViewById(R.id.oss_name);
         _repoLinkTextView = ossContainerView.findViewById(R.id.repo_link);
         _repoLinkTextView.setMovementMethod(LinkMovementMethod.getInstance());
         _licenseView = ossContainerView.findViewById(R.id.license);
+        _licenseView.getSettings().setLoadWithOverviewMode(true);
+        _licenseView.getSettings().setUseWideViewPort(true);
         _licensePartInflater = LayoutInflater.from(ossContainerView.getContext());
         _ossContentContainer = ossContainerView.findViewById(R.id.oss_content);
         _nameTextView.setOnClickListener(v -> {
-            if (_expanded) {
+            if (_animationState == AnimationState.EXPANDED) {
                 collapse();
-            } else {
+            } else if (_animationState == AnimationState.COLLAPSED) {
                 expand();
             }
         });
+    }
+
+    private int getScale(View parent) {
+        Display display = ((WindowManager)parent.getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        Point points = new Point();
+        display.getSize(points);
+        Double value = (points.x / 50f) * 100d;
+        return value.intValue();
     }
 
     /**
@@ -59,13 +69,97 @@ public class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder {
      */
     public void setSoftware(@NotNull OpenSourceSoftwareContent.OpenSourceSoftware software) {
         _nameTextView.setText(software.getName());
+
         String htmlUrl = "<a href=\"" + software.getUrl() + "\">" + software.getUrl() + "</a>";
         _repoLinkTextView.setText(Html.fromHtml(htmlUrl, Html.FROM_HTML_MODE_COMPACT));
-        for (String licenseText : software.getLicense().split("\n")) {
-            TextView licensePart = (TextView)_licensePartInflater.inflate(R.layout.license_paragraph_layout, null);
-            licensePart.setText(licenseText);
-            _licenseView.addView(licensePart);
-        }
+
+        String license = software.getLicense();
+//        for (int length = 0; length < license.length(); length += 9000) {
+//            String licenseTextPart = length + 9000 < license.length() ?
+//                                     license.substring(length, length + 9000) :
+//                                     license.substring(length);
+//            TextView licensePart = (TextView)_licensePartInflater.inflate(R.layout.license_paragraph_layout, null);
+//            licensePart.setText(licenseTextPart);
+//            _licenseView.addView(licensePart);
+//        }
+        _licenseView.loadData(license, "text/html", null);
+
+//        ExpandableListView expandableListView = _container.findViewById(R.id.expandable);
+//        List<Map<String, List<String>>> groupData = new ArrayList<>();
+//        List<String> details = new ArrayList<>();
+//        details.add(htmlUrl);
+//        details.add(license);
+//        Map<String, List<String>> data = new HashMap<>();
+//        data.put(software.getName(), details);
+//        groupData.add(data);
+//        ExpandableListAdapter adapter = new BaseExpandableListAdapter() {
+//            @Override
+//            public int getGroupCount() {
+//                return 1;
+//            }
+//
+//            @Override
+//            public int getChildrenCount(int groupPosition) {
+//                return 2;
+//            }
+//
+//            @Override
+//            public Object getGroup(int groupPosition) {
+//                return groupData.get(groupPosition);
+//            }
+//
+//            @Override
+//            public Object getChild(int groupPosition, int childPosition) {
+//                return details.get(childPosition);
+//            }
+//
+//            @Override
+//            public long getGroupId(int groupPosition) {
+//                return software.getName().length();
+//            }
+//
+//            @Override
+//            public long getChildId(int groupPosition, int childPosition) {
+//                return software.getUrl().length();
+//            }
+//
+//            @Override
+//            public boolean hasStableIds() {
+//                return false;
+//            }
+//
+//            @Override
+//            public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+//                return null;
+//            }
+//
+//            @Override
+//            public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+//                return null;
+//            }
+//
+//            @Override
+//            public boolean isChildSelectable(int groupPosition, int childPosition) {
+//                return false;
+//            }
+//        };
+//        for (String licenseTextPart : license.split(("\n"))) {
+//            int padding = licenseTextPart.replaceAll("^(\\s+).+", "$1").length() * 2;
+//            TextView licensePart = (TextView)_licensePartInflater.inflate(R.layout.license_paragraph_layout, null);
+//            if (!licenseTextPart.isEmpty() && padding != 0 && padding != licenseTextPart.length() * 2) {
+//                if (padding < 40) {
+//                    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+//                    layoutParams.setMargins(padding, 0, padding, 0);
+//                    licensePart.setLayoutParams(layoutParams);
+//                    licensePart.setPadding(padding, 0, padding, 0);
+//                } else {
+//                    licensePart.setGravity(Gravity.CENTER_HORIZONTAL);
+//                }
+//            }
+//
+//            licensePart.setText(licenseTextPart.trim());
+//            _licenseView.addView(licensePart);
+//        }
     }
 
     /**
@@ -73,7 +167,7 @@ public class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder {
      */
     private void expand() {
         int initialHeight = _ossContentContainer.getHeight();
-        if (_expanding || _collapsing) {
+        if (_animationState == AnimationState.EXPANDING || _animationState == AnimationState.COLLAPSING) {
             _previousHeight = initialHeight;
         }
 
@@ -85,6 +179,9 @@ public class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder {
         }
     }
 
+    /**
+     * Collapses the license and url of the third party library that's currently being shown.
+     */
     private void collapse() {
         int initialHeight = _ossContentContainer.getMeasuredHeight();
         if (initialHeight - _previousHeight != 0) {
@@ -92,44 +189,26 @@ public class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder {
         }
     }
 
+    /**
+     * Applies and starts an expanding/collapsing animation given the {@code animationType}.
+     * @param initialHeight The initial height of the {@link View} to animate.
+     * @param distance The final height of the {@link View} to animate.
+     * @param animationType The type of animation to perform, either {@code COLLAPSING} or {@code EXPANDING}.
+     */
     private void animateViews(int initialHeight, int distance, AnimationState animationType) {
         Animation expandAnimation = new Animation() {
-            /**
-             * <p>Indicates whether or not this animation will affect the bounds of the
-             * animated view. For instance, a fade animation will not affect the bounds
-             * whereas a 200% scale animation will.</p>
-             *
-             * @return true if this animation will change the view's bounds
-             */
+            /** {@inheritDoc} */
             @Override
             public boolean willChangeBounds() {
                 return true;
             }
 
-            /**
-             * Helper for getTransformation. Subclasses should implement this to apply
-             * their transforms given an interpolation value.  Implementations of this
-             * method should always replace the specified Transformation or document
-             * they are doing otherwise.
-             *
-             * @param interpolatedTime The value of the normalized time (0.0 to 1.0)
-             *                         after it has been run through the interpolation function.
-             * @param t                The Transformation object to fill in with the current
-             */
+            /** {@inheritDoc} */
             @Override
             protected void applyTransformation(float interpolatedTime, Transformation t) {
                 if (interpolatedTime == 1f) {
                     // setting isExpanding/isCollapsing to false
-                    _expanding = false;
-                    _collapsing = false;
-
-                    if (_onExpandedListener != null) {
-                        if (animationType == AnimationState.EXPANDING) {
-                            _onExpandedListener.onExpandChanged(_ossContainer, true);
-                        } else {
-                            _onExpandedListener.onExpandChanged(_ossContainer, false);
-                        }
-                    }
+                    _animationState = animationType == AnimationState.EXPANDING ? AnimationState.EXPANDED : AnimationState.COLLAPSED;
                 }
 
                 _ossContentContainer.getLayoutParams().height = (int)((animationType == AnimationState.EXPANDING) ? (initialHeight + distance * interpolatedTime) : (initialHeight - distance * interpolatedTime));
@@ -138,26 +217,19 @@ public class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder {
         };
         expandAnimation.setDuration(350);
 
-        _expanding = animationType == AnimationState.EXPANDING;
-        _collapsing = animationType == AnimationState.COLLAPSING;
+        _animationState = animationType;
 
         RotateDrawable arrowDrawable = (RotateDrawable)_nameTextView.getCompoundDrawables()[2];
         _ossContentContainer.startAnimation(expandAnimation);
-        if (animationType == AnimationState.EXPANDING) {
+
+        if (_animationState == AnimationState.EXPANDING) {
             ObjectAnimator.ofInt(arrowDrawable, "level", 0, 10000).setDuration(350).start();
-        } else if (animationType == AnimationState.COLLAPSING) {
+        } else if (_animationState == AnimationState.COLLAPSING) {
             ObjectAnimator.ofInt(arrowDrawable, "level", 10000, 0).setDuration(350).start();
         }
 
-        Log.d(this.getClass().getName(), "Started Animation: " + (_expanding ? "Expanding" : "Collapsing"));
-        _expanded = animationType == AnimationState.EXPANDING;
-    }
-
-    /**
-     * TODO: do something with this interface? Probably just remove it
-     */
-    public interface OnExpandedListener {
-        void onExpandChanged(View view, boolean isExpanded);
+        Log.d(this.getClass().getName(), "Started Animation: " + (_animationState == AnimationState.EXPANDING ? "Expanding " : "Collapsing ") + _nameTextView.getText());
+        _animationState = _animationState == AnimationState.EXPANDING ? AnimationState.EXPANDED : AnimationState.COLLAPSED;
     }
 
     /**
@@ -165,6 +237,8 @@ public class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder {
      */
     private enum AnimationState {
         COLLAPSING,
-        EXPANDING
+        EXPANDING,
+        EXPANDED,
+        COLLAPSED
     }
 }

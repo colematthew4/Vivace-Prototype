@@ -1,12 +1,12 @@
 package cole.matthew.vivace.Fragments;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import cole.matthew.vivace.Exceptions.StorageNotReadableException;
 import cole.matthew.vivace.Exceptions.StorageNotWritableException;
@@ -50,30 +51,35 @@ public class RecordingListFragment extends Fragment implements RecyclerViewItemT
             _listener = (OnListFragmentInteractionListener)context;
             _context = context;
             _adapter = new RecordingListRecyclerViewAdapter((Activity)context);
-        }
-        else {
+        } else {
             throw new RuntimeException(context.toString() + " must implement OnListFragmentInteractionListener");
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
+    /** {@inheritDoc} */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_recordinglist, container, false);
 
         // Set the adapter
-        if (view instanceof RecyclerView) {
-            RecyclerView recyclerView = (RecyclerView)view;
+        if (view instanceof FrameLayout) {
+            RecyclerView recyclerView = view.findViewById(R.id.recordingList);
             recyclerView.setItemAnimator(new DefaultItemAnimator());
             recyclerView.addItemDecoration(new DividerItemDecoration(_context, DividerItemDecoration.VERTICAL));
             recyclerView.setAdapter(_adapter);
 
             ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerViewItemTouchHelper(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, this);
             new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
+
+            if (_adapter.getItemCount() != 0) {
+                view.findViewById(R.id.noRecordingsTextView).setVisibility(View.GONE);
+            }
         }
 
         return view;
@@ -104,8 +110,7 @@ public class RecordingListFragment extends Fragment implements RecyclerViewItemT
             public void onDismissed(Snackbar snackbar, int event) {
                 try {
                     _adapter.deleteRecording(deletedRecording);
-                }
-                catch (StorageNotReadableException | StorageNotWritableException e) {
+                } catch (StorageNotReadableException | StorageNotWritableException e) {
                     Log.e(getString(R.string.application_tag), e.getMessage());
                 }
             }

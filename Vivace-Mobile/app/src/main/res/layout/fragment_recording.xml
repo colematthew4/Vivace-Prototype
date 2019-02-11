@@ -1,84 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent"
-	android:layout_height="wrap_content"
+	android:layout_height="72dp"
+	android:background="@android:color/holo_red_dark"
 	android:orientation="vertical">
 	<RelativeLayout
-		android:id="@+id/recyclerview_background"
+		android:id="@+id/background"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:background="@android:color/holo_red_dark">
+		android:layout_height="56dp"
+		android:layout_gravity="center_vertical"
+		android:paddingTop="16dp"
+		android:paddingBottom="16dp">
 		<ImageView
 			android:id="@+id/delete_recording_icon_left"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_alignParentStart="true"
-			android:layout_centerVertical="true"
-			android:layout_marginStart="@dimen/padd_10"
-			android:src="@drawable/ic_delete_white_24dp"
-			android:contentDescription="@string/delete_description" />
+			android:layout_marginStart="16dp"
+			android:contentDescription="@string/delete_description"
+			android:src="@drawable/ic_delete_white_24dp" />
 		<TextView
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:layout_centerVertical="true"
-			android:layout_marginStart="@dimen/padd_10"
+			android:layout_marginStart="16dp"
 			android:layout_toEndOf="@id/delete_recording_icon_left"
 			android:text="@string/action_delete"
 			android:textColor="#fff"
-			android:textSize="13sp" />
+			android:textSize="16sp" />
 		<ImageView
 			android:id="@+id/delete_recording_icon_right"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_alignParentEnd="true"
-			android:layout_centerVertical="true"
-			android:layout_marginEnd="@dimen/padd_10"
-			android:src="@drawable/ic_delete_white_24dp"
-			android:contentDescription="@string/delete_description" />
+			android:layout_marginEnd="16dp"
+			android:contentDescription="@string/delete_description"
+			android:src="@drawable/ic_delete_white_24dp" />
 		<TextView
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:layout_centerVertical="true"
-			android:layout_marginEnd="@dimen/padd_10"
+			android:layout_marginEnd="16dp"
 			android:layout_toStartOf="@id/delete_recording_icon_right"
 			android:text="@string/action_delete"
 			android:textColor="#fff"
-			android:textSize="13sp" />
+			android:textSize="16sp" />
 	</RelativeLayout>
 	<RelativeLayout
-		android:id="@+id/recyclerview_foreground"
+		android:id="@+id/foreground"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:padding="@dimen/padd_10"
-		android:background="@android:color/white">
+		android:layout_height="match_parent"
+		android:background="@android:color/white"
+		android:paddingStart="16dp"
+		android:paddingEnd="16dp">
 	    <ImageView
 		    android:id="@+id/recording_file_icon"
 		    android:layout_width="40dp"
 		    android:layout_height="40dp"
-		    android:layout_marginEnd="@dimen/padd_10"
-		    android:layout_alignParentStart="true"
-		    android:layout_centerVertical="true"
-		    android:src="@drawable/ic_file_black_24dp"
+		    android:layout_marginTop="16dp"
+		    android:layout_marginEnd="16dp"
 		    android:contentDescription="@string/recording_filetype" />
 		<LinearLayout
 			android:layout_width="match_parent"
-			android:layout_height="40dp"
+			android:layout_height="wrap_content"
 			android:layout_centerVertical="true"
 			android:layout_toEndOf="@id/recording_file_icon"
 			android:orientation="vertical">
 			<TextView
 				android:id="@+id/file_name"
 				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
+				android:layout_height="32dp"
 				android:textAppearance="?attr/textAppearanceListItem"
-				android:textSize="17sp" />
+				android:textColor="#000000"
+				android:alpha="0.87"
+				android:textSize="16sp" />
 		    <TextView
 			    android:id="@+id/lastModified"
 			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:layout_gravity="end"
-			    android:textAppearance="?attr/textAppearanceListItem"
-			    android:textSize="12sp" />
+			    android:layout_height="20dp"
+			    android:layout_marginTop="-10dp"
+			    android:textAppearance="?android:attr/textAppearanceListItemSecondary"
+			    android:textColor="#000000"
+			    android:alpha="0.54"
+			    android:textSize="14sp"
+			    android:gravity="top" />
 		</LinearLayout>
 	</RelativeLayout>
 </FrameLayout>

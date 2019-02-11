@@ -128,7 +128,7 @@ public class MainActivity extends BaseVivaceActivity
 //        _scorePartWise = ScorePartWise.createInstance(this, _timeSignature, _bpm);
 
 //        _tempoTextView = findViewById(R.id.tempo);
-//        _tempoTextView.setText(String.format("%d BPM", _bpm));
+//        _tempoTextView.setText(_bpm + " BPM");
 //        _tempoTextView.setOnClickListener(view -> {
 //              Bundle arguments = new Bundle();
 //              arguments.putInt("TempoValue", _bpm);
@@ -229,7 +229,7 @@ public class MainActivity extends BaseVivaceActivity
         //                                                if (!storageLocation.exists())
         //                                                    throw new StorageNotReadableException("Couldn't gain access to your external storage.");
         //
-        //                                                _tempFile = new File(storageLocation, String.format("%s_%d%s", filename, storageLocation.listFiles().length + 1, fileExt));
+        //                                                _tempFile = new File(storageLocation, filename + "_" + (storageLocation.listFiles().length + 1) + fileExt);
         //                                                FileOutputStream file = new FileOutputStream(_tempFile);
         //                                                _score = new Pattern();
         //                                                _score.addElement(new Tempo(_bpm));
@@ -246,7 +246,7 @@ public class MainActivity extends BaseVivaceActivity
         //
         //                                                file.flush();
         //                                                file.close();
-        //                                                Toast.makeText(context, String.format("Saved as %s", _tempFile.getName()), Toast.LENGTH_LONG).show();
+        //                                                Toast.makeText(context, "Saved as " + _tempFile.getName(), Toast.LENGTH_LONG).show();
         //                                                _tempFile = null;
         //                                            }
         //                                        }
@@ -328,7 +328,7 @@ public class MainActivity extends BaseVivaceActivity
     /** {@inheritDoc} */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-        Log.d(APPLICATION_TAG, String.format("Configuration Change - %s", newConfig.toString()));
+        Log.d(APPLICATION_TAG, "Configuration Change - " + newConfig.toString());
         super.onConfigurationChanged(newConfig);
     }
 
@@ -462,7 +462,7 @@ public class MainActivity extends BaseVivaceActivity
 
                 break;
             default:
-                Log.d(APPLICATION_TAG, String.format("Got an unrecognized request code from asking for permissions: %d", requestCode));
+                Log.d(APPLICATION_TAG, "Got an unrecognized request code from asking for permissions: " + requestCode);
                 break;
         }
     }
@@ -474,7 +474,7 @@ public class MainActivity extends BaseVivaceActivity
         Log.d(APPLICATION_TAG, "MainActivity - onTempoDialogPositiveClick: tempo = " + tempo);
 
         _bpm = tempo;
-        _tempoTextView.setText(String.format("%d BPM", _bpm));
+        _tempoTextView.setText(_bpm + " BPM");
     }
 
     /** {@inheritDoc} */
@@ -505,12 +505,12 @@ public class MainActivity extends BaseVivaceActivity
             final String script = VexFlowScriptGenerator.getInstance().addMeasureStave(measure);
             _scoreUI.getHandler().post(() -> {
                 _scoreUI.evaluateJavascript(script, value -> {
-                    Log.d(APPLICATION_TAG, String.format("MainActivity - onNewMeasure: %s", value));
+                    Log.d(APPLICATION_TAG, "MainActivity - onNewMeasure: " + value);
                 });
             });
         }
         catch (NullPointerException e) {
-            Log.e(APPLICATION_TAG, String.format("MainActivity - onNewMeasure: %s", e.getMessage()));
+            Log.e(APPLICATION_TAG, "MainActivity - onNewMeasure: " + e.getMessage());
         }
     }
 
@@ -581,13 +581,13 @@ public class MainActivity extends BaseVivaceActivity
                             //                            });
                         }
                         else {
-                            Log.d(TAG, String.format("Found: %s.", keys.toString()));
+                            Log.d(TAG, "Found: " + keys.toString());
                             //_scorePartWise.addNote(keys.keySet(), 0.25);
                             String pitch = (String)keys.keySet().toArray()[0];
                             _scorePartWise.addNote(new Note(pitch, 0.25));
                             //                            for (final String note : keys.keySet())
                             //                            {
-                            //                                Log.d(TAG, String.format("Found: %s at freq=\"%f\"", note, keys.get(note)));
+                            //                                Log.d(TAG, "Found: " + note + " at freq=\"" + keys.get(note) + "\"");
                             //                                _scorePartWise.addNote(new Note(note, 0.25));
                             ////                                _recordingTimer.post(new Runnable()
                             ////                                {

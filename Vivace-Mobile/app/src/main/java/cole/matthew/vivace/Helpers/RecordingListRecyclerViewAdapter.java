@@ -27,7 +27,6 @@ import static java.text.DateFormat.getDateTimeInstance;
 /**
  * {@link RecyclerView.Adapter} that can display a {@link IRecording} and makes a call to the
  * specified {@link OnListFragmentInteractionListener}.
- * TODO: Replace the implementation with code for your data type.
  */
 public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter<RecordingListRecyclerViewAdapter.RecordingViewHolder> {
     private final List<IRecording> _recordings;
@@ -56,8 +55,6 @@ public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter
     @Override
     public void onBindViewHolder(@NonNull final RecordingViewHolder holder, int position) {
         holder.setRecording(_recordings.get(position));
-        holder.setRecordingFileName(_recordings.get(position).getName());
-        holder.setModifiedDate(_recordings.get(position).getLastModified());
 
         //        holder._view.setOnClickListener(v -> {
         //            if (null != _listener) {
@@ -76,10 +73,12 @@ public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter
 
     /**
      * Gets the recording at the specified position in the recording list.
+     *
      * @param position The index of the recording.
+     *
      * @return The recording at the specified position.
-     * @throws IndexOutOfBoundsException if the index is out of range
-     *         (<tt>index &lt; 0 || index &gt; size()</tt>)
+     *
+     * @exception IndexOutOfBoundsException if the index is out of range (<tt>index &lt; 0 || index &gt; size()</tt>)
      */
     public IRecording getRecording(int position) {
         return _recordings.get(position);
@@ -88,12 +87,13 @@ public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter
     /**
      * Removes the element at the specified position in the recording list. Returns the element that
      * was removed from the list.
+     *
      * @param position the index of the element to be removed
+     *
      * @return The element previously at the specified position.
-     * @throws UnsupportedOperationException if the <tt>remove</tt> operation
-     *         is not supported by this list
-     * @throws IndexOutOfBoundsException if the index is out of range
-     *         (<tt>index &lt; 0 || index &gt;= size()</tt>)
+     *
+     * @exception UnsupportedOperationException if the <tt>remove</tt> operation is not supported by this list
+     * @exception IndexOutOfBoundsException     if the index is out of range (<tt>index &lt; 0 || index &gt;= size()</tt>)
      */
     public IRecording removeRecording(int position) {
         // notify the item removed by position to perform recycler view delete animations
@@ -104,10 +104,11 @@ public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter
 
     /**
      * Restores the recording that was removed from the file system.
+     *
      * @param recording The recording to restore.
-     * @param position index at which the specified element is to be inserted.
-     * @throws IndexOutOfBoundsException if the index is out of range
-     *         (<tt>index &lt; 0 || index &gt; size()</tt>)
+     * @param position  index at which the specified element is to be inserted.
+     *
+     * @exception IndexOutOfBoundsException if the index is out of range (<tt>index &lt; 0 || index &gt; size()</tt>)
      */
     public void restoreItem(IRecording recording, int position) {
         _recordings.add(position, recording);
@@ -117,6 +118,7 @@ public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter
 
     /**
      * Permanently deletes a recording from the filesystem.
+     *
      * @param recording The recording to delete from the file system.
      */
     public void deleteRecording(IRecording recording)
@@ -139,22 +141,26 @@ public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter
 
         /**
          * Instantiates a RecordingViewHolder with the given item view.
+         *
          * @param view The item view to place in the RecyclerView.
-         * @throws IllegalArgumentException parameter {@code view} is {@code null}.
-         * @throws NullPointerException if the context attached to the item view is {@code null}.
+         *
+         * @exception IllegalArgumentException parameter {@code view} is {@code null}.
+         * @exception NullPointerException     if the context attached to the item view is {@code null}.
          */
-        RecordingViewHolder(@NonNull View view) {
+        RecordingViewHolder(@NonNull View view)
+                throws NullPointerException
+        {
             super(view);
-            _context = view.getContext();
-            Objects.requireNonNull(_context);
+            Objects.requireNonNull((_context = view.getContext()), "The context to attach to the item view must not be null.");
             _recordingFileName = view.findViewById(R.id.file_name);
             _recordingLastModified = view.findViewById(R.id.lastModified);
             _recordingFileIcon = view.findViewById(R.id.recording_file_icon);
-            _foreground = view.findViewById(R.id.recyclerview_foreground);
+            _foreground = view.findViewById(R.id.foreground);
         }
 
         /**
          * Gets the foreground of item view as a RelativeLayout.
+         *
          * @return The foreground of the item view.
          */
         RelativeLayout getForeground() {
@@ -164,11 +170,15 @@ public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter
         /**
          * Sets the recording stored in the item view. Changes the file icon based on the recording
          * type.
+         *
          * @param recording The recording to attach to the item view.
-         * @throws NullPointerException if {@code recording} is {@code null}.
+         *
+         * @exception NullPointerException if {@code recording} is {@code null}.
          */
-        public void setRecording(@NonNull IRecording recording) {
-            Objects.requireNonNull(recording);
+        public void setRecording(@NonNull IRecording recording)
+                throws NullPointerException
+        {
+            Objects.requireNonNull(recording, "The recording must not be null.");
             _recording = recording;
             int fileDrawable = R.drawable.ic_file_black_24dp;
 
@@ -190,10 +200,13 @@ public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter
             }
 
             _recordingFileIcon.setImageDrawable(_context.getDrawable(fileDrawable));
+            setRecordingFileName(recording.getName());
+            setModifiedDate(recording.getLastModified());
         }
 
         /**
          * Sets the primary text of the item view to the name of the recording.
+         *
          * @param name The name of the recording.
          */
         public void setRecordingFileName(String name) {
@@ -202,6 +215,7 @@ public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter
 
         /**
          * Sets the secondary text of the item view to the date the recording was last modified.
+         *
          * @param lastModified The date the recording was last modified.
          */
         public void setModifiedDate(String lastModified) {
@@ -210,16 +224,17 @@ public final class RecordingListRecyclerViewAdapter extends RecyclerView.Adapter
 
         /**
          * Sets the secondary text of the item view to the date the recording was last modified.
+         *
          * @param lastModified The date the recording was last modified.
          */
         public void setModifiedDate(LocalDateTime lastModified) {
-           _recordingLastModified.setText(getDateTimeInstance().format(lastModified));
+            _recordingLastModified.setText(getDateTimeInstance().format(lastModified));
         }
 
         /** {@inheritDoc} */
         @Override
         public String toString() {
-            return String.format("%s '%s'", super.toString(), _recordingLastModified.getText());
+            return super.toString() + "'" + _recordingLastModified.getText() + "'";
         }
     }
 }

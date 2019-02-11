@@ -35,17 +35,17 @@ public class TimeSignature {
     public TimeSignature(@NotNull String timeSignature)
             throws IllegalArgumentException
     {
-        if (!timeSignature.matches("\\d/\\d"))
-            throw new IllegalArgumentException(
-                    String.format("%s does not represent a valid time signature.", timeSignature));
+        if (!timeSignature.matches("\\d/\\d")) {
+            throw new IllegalArgumentException(timeSignature + " does not represent a valid time signature.");
+        }
 
         try {
             int divide = timeSignature.indexOf('/');
             int beats = Integer.valueOf(timeSignature.substring(0, divide));
             int beatUnit = Integer.valueOf(timeSignature.substring(divide + 1));
             setTimeSignature(beats, beatUnit);
-        }
-        catch (IndexOutOfBoundsException | NumberFormatException e) {
+        } catch (IndexOutOfBoundsException | NumberFormatException e) {
+            // TODO: log error?
             throw new IllegalArgumentException(timeSignature + " does not represent a valid time signature.");
         }
     }
@@ -61,8 +61,9 @@ public class TimeSignature {
     private void setTimeSignature(int beats, int beatUnit)
             throws MathIllegalArgumentException
     {
-        if (!ArithmeticUtils.isPowerOfTwo(beatUnit))
+        if (!ArithmeticUtils.isPowerOfTwo(beatUnit)) {
             throw new MathIllegalArgumentException(LocalizedFormats.NOT_POWER_OF_TWO_CONSIDER_PADDING, beatUnit);
+        }
 
         _beatsPerMeasure = beats;
         _beatUnit = beatUnit;

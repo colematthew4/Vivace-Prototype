@@ -10,4 +10,9 @@
 		<url>https://github.com/google/material-design-icons</url>
 		<license>Apache License v2.0</license>
 	</item>
+	<item>
+		<name>commonmark-java</name>
+		<url>https://github.com/atlassian/commonmark-java</url>
+		<license>BSD 2-Clause Simplified License</license>
+	</item>
 </oss>

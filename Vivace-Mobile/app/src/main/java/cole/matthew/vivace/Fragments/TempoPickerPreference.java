@@ -10,8 +10,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.NumberPicker;
 
-import java.util.Locale;
-
 import cole.matthew.vivace.Exceptions.InvalidTempoException;
 import cole.matthew.vivace.Exceptions.NegativeNumberException;
 import cole.matthew.vivace.R;
@@ -52,11 +50,12 @@ public final class TempoPickerPreference extends DialogPreference {
 
     /**
      * Assigns default values to the instance's private members.
+     *
      * @param context The context to get the styleable attributes from.
-     * @param attrs The base set of attribute values.
-     * @throws NegativeNumberException When the tempo is a negative number.
-     * @throws InvalidTempoException When the tempo is less than the minimum tempo or greater than
-     * the maximum tempo.
+     * @param attrs   The base set of attribute values.
+     *
+     * @exception NegativeNumberException When the tempo is a negative number.
+     * @exception InvalidTempoException   When the tempo is less than the minimum tempo or greater than the maximum tempo.
      */
     private void setDefaults(Context context, AttributeSet attrs)
             throws NegativeNumberException, InvalidTempoException
@@ -65,18 +64,13 @@ public final class TempoPickerPreference extends DialogPreference {
     }
 
     /**
+     * @param context      The context to get the styleable attributes from.
+     * @param attrs        The base set of attribute values.
+     * @param defStyleAttr An attribute in the current theme that contains a reference to a style resource that supplies defaults values for the TypedArray. Can be 0 to not look for defaults.
+     * @param defStyleRes  A resource identifier of a style resource that supplies default values for the TypedArray, used only if defStyleAttr is 0 or can not be found in the theme. Can be 0 to not look for defaults.
      *
-     * @param context the context to get the styleable attributes from.
-     * @param attrs The base set of attribute values.
-     * @param defStyleAttr An attribute in the current theme that contains a reference to a style
-     *                     resource that supplies defaults values for the TypedArray. Can be 0 to
-     *                     not look for defaults.
-     * @param defStyleRes A resource identifier of a style resource that supplies default values for
-     *                    the TypedArray, used only if defStyleAttr is 0 or can not be found in the
-     *                    theme. Can be 0 to not look for defaults.
-     * @throws NegativeNumberException When the tempo is a negative number.
-     * @throws InvalidTempoException When the tempo is less than the minimum tempo or greater than
-     * the maximum tempo.
+     * @exception NegativeNumberException When the tempo is a negative number.
+     * @exception InvalidTempoException   When the tempo is less than the minimum tempo or greater than the maximum tempo.
      */
     private void setDefaults(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
             throws NegativeNumberException, InvalidTempoException
@@ -89,14 +83,14 @@ public final class TempoPickerPreference extends DialogPreference {
         try {
             setMaxTempo(typedArray.getInteger(R.styleable.TempoPickerPreference_maxTempo, 218));
             setMinTempo(typedArray.getInteger(R.styleable.TempoPickerPreference_minTempo, 40));
-        }
-        finally {
+        } finally {
             typedArray.recycle();
         }
     }
 
     /**
      * Gets the maximum tempo a recording can be processed at.
+     *
      * @return The maximum tempo.
      */
     public int getMaxTempo() {
@@ -105,17 +99,20 @@ public final class TempoPickerPreference extends DialogPreference {
 
     /**
      * Sets the maximum tempo a recording can be processed at.
+     *
      * @param tempo The new maximum tempo
-     * @throws NegativeNumberException When the new tempo is a negative number.
-     * @throws InvalidTempoException When the new tempo is less than the minimum tempo.
+     *
+     * @exception NegativeNumberException When the new tempo is a negative number.
+     * @exception InvalidTempoException   When the new tempo is less than the minimum tempo.
      */
     public void setMaxTempo(int tempo)
             throws NegativeNumberException, InvalidTempoException
     {
-        if (tempo < 0)
+        if (tempo < 0) {
             throw new NegativeNumberException(tempo);
-        else if (tempo < _minTempo)
+        } else if (tempo < _minTempo) {
             throw new InvalidTempoException(tempo);
+        }
 
         _maxTempo = tempo;
         persistData(tempo);
@@ -123,6 +120,7 @@ public final class TempoPickerPreference extends DialogPreference {
 
     /**
      * Gets the minimum tempo a recording can be processed at.
+     *
      * @return The minimum tempo.
      */
     public int getMinTempo() {
@@ -131,17 +129,20 @@ public final class TempoPickerPreference extends DialogPreference {
 
     /**
      * Sets the minimum tempo a recording can be processed at.
+     *
      * @param tempo The new minimum tempo
-     * @throws NegativeNumberException When the new tempo is a negative number.
-     * @throws InvalidTempoException When the new tempo is greater than the maximum tempo.
+     *
+     * @exception NegativeNumberException When the new tempo is a negative number.
+     * @exception InvalidTempoException   When the new tempo is greater than the maximum tempo.
      */
     public void setMinTempo(int tempo)
             throws NegativeNumberException, InvalidTempoException
     {
-        if (tempo < 0)
+        if (tempo < 0) {
             throw new NegativeNumberException(tempo);
-        else if (tempo > _maxTempo)
+        } else if (tempo > _maxTempo) {
             throw new InvalidTempoException(tempo);
+        }
 
         _minTempo = tempo;
         persistData(_minTempo);
@@ -149,6 +150,7 @@ public final class TempoPickerPreference extends DialogPreference {
 
     /**
      * Gets the current tempo a recording is to be processed at.
+     *
      * @return The current tempo.
      */
     public int getTempo() {
@@ -157,23 +159,26 @@ public final class TempoPickerPreference extends DialogPreference {
 
     /**
      * Sets the current tempo a recording is to be processed at.
+     *
      * @param tempo The new current tempo
-     * @throws InvalidTempoException When the tempo is less than the minimum tempo or greater than
-     * the maximum tempo.
+     *
+     * @exception InvalidTempoException When the tempo is less than the minimum tempo or greater than the maximum tempo.
      */
     public void setTempo(int tempo)
             throws InvalidTempoException
     {
-        if (tempo < _minTempo || tempo > _maxTempo)
+        if (tempo < _minTempo || tempo > _maxTempo) {
             throw new InvalidTempoException(tempo);
+        }
 
         _tempo = tempo;
-        setSummary(String.format(Locale.US, "%d BPM", _tempo));
+        setSummary(_tempo + " BPM");
         persistData(_tempo);
     }
 
     /**
      * Attempts to persist a value.
+     *
      * @param value The value to persist.
      */
     private void persistData(int value) {
@@ -201,9 +206,8 @@ public final class TempoPickerPreference extends DialogPreference {
             if (which == DialogInterface.BUTTON_POSITIVE) {
                 try {
                     setTempo(_tempoPicker.getValue());
-                }
-                catch (InvalidTempoException e) {
-                    Log.e(TAG, String.format("Line 252 - %s", e.getMessage()));
+                } catch (InvalidTempoException e) {
+                    Log.e(TAG, "Line " + e.getStackTrace()[0].getLineNumber() + " - " + e.getMessage());
                     // TODO: show error message?
                 }
             }
@@ -221,9 +225,8 @@ public final class TempoPickerPreference extends DialogPreference {
     protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
         try {
             setTempo(restorePersistedValue ? getPersistedInt(_tempo) : defaultValue != null ? (int)defaultValue : 120);
-        }
-        catch (InvalidTempoException e) {
-            Log.e(TAG, String.format("Line 252 - %s", e.getMessage()));
+        } catch (InvalidTempoException e) {
+            Log.e(TAG, "Line " + e.getStackTrace()[0].getLineNumber() + " - " + e.getMessage());
         }
     }
 }

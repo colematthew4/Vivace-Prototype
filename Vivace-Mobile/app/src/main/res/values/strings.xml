@@ -162,4 +162,5 @@
 	<string name="application_tag">Vivace_TAG</string>
 	<string name="audio_settings_title">Audio Settings</string>
     <string name="title_activity_open_source_software_list">Third-party Software</string>
+	<string name="no_recordings_found_alert">No recordings found</string>
 </resources>

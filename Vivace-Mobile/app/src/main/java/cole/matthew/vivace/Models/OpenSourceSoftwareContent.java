@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.res.XmlResourceParser;
 import android.util.Log;
 
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
@@ -51,71 +54,71 @@ public final class OpenSourceSoftwareContent {
     private void loadSoftwareFromResource(Context context)
             throws IOException, XmlPullParserException
     {
-        try (XmlResourceParser parser = context.getResources().getXml(R.xml.oss)) {
+        try (XmlResourceParser xmlParser = context.getResources().getXml(R.xml.oss)) {
             int xmlTagType;
-            while ((xmlTagType = parser.next()) != XmlResourceParser.END_DOCUMENT &&
+            while ((xmlTagType = xmlParser.next()) != XmlResourceParser.END_DOCUMENT &&
                    xmlTagType != XmlResourceParser.START_TAG) {
                 // parse until start tag is found
             }
 
-            String openTagName = parser.getName();
+            String openTagName = xmlParser.getName();
             if (!"oss".equals(openTagName)) {
                 throw new XmlPullParserException("XML Document must start with <oss> tag; found " +
-                                                 openTagName + " at " + parser.getPositionDescription());
+                                                 openTagName + " at " + xmlParser.getPositionDescription());
             }
 
-            final int outerDepth = parser.getDepth();
-            while ((xmlTagType = parser.next()) != XmlResourceParser.END_DOCUMENT && (xmlTagType != XmlResourceParser.END_TAG || parser.getDepth() > outerDepth)) {
+            final int outerDepth = xmlParser.getDepth();
+            while ((xmlTagType = xmlParser.next()) != XmlResourceParser.END_DOCUMENT && (xmlTagType != XmlResourceParser.END_TAG || xmlParser.getDepth() > outerDepth)) {
                 if (xmlTagType != XmlResourceParser.END_TAG && xmlTagType != XmlResourceParser.TEXT) {
-                    String nodeName = parser.getName();
+                    String nodeName = xmlParser.getName();
                     if ("item".equals(nodeName)) {
                         String softwareName = null;
                         String softwareUrl = null;
-                        StringBuilder licenseBuffer = new StringBuilder();
+                        String license = null;
 
-                        final int innerDepth = parser.getDepth();
-                        while ((xmlTagType = parser.next()) != XmlResourceParser.END_DOCUMENT && (xmlTagType != XmlResourceParser.END_TAG || parser.getDepth() > innerDepth)) {
+                        final int innerDepth = xmlParser.getDepth();
+                        while ((xmlTagType = xmlParser.next()) != XmlResourceParser.END_DOCUMENT && (xmlTagType != XmlResourceParser.END_TAG || xmlParser.getDepth() > innerDepth)) {
                             if (xmlTagType != XmlResourceParser.END_TAG && xmlTagType != XmlResourceParser.TEXT) {
-                                String innerNodeName = parser.getName();
+                                String innerNodeName = xmlParser.getName();
                                 if ("name".equals(innerNodeName)) {
-                                    if (parser.next() != XmlResourceParser.TEXT)
+                                    if (xmlParser.next() != XmlResourceParser.TEXT)
                                         continue;
 
-                                    softwareName = parser.getText();
+                                    softwareName = xmlParser.getText();
                                 } else if ("url".equals(innerNodeName)) {
-                                    if (parser.next() != XmlResourceParser.TEXT)
+                                    if (xmlParser.next() != XmlResourceParser.TEXT)
                                         continue;
 
-                                    softwareUrl = parser.getText();
+                                    softwareUrl = xmlParser.getText();
                                 } else if ("license".equals(innerNodeName)) {
-                                    if (parser.next() != XmlResourceParser.TEXT)
+                                    if (xmlParser.next() != XmlResourceParser.TEXT)
                                         continue;
 
-                                    String licenseName = parser.getText();
-                                    try (InputStream licenseStream = context.getAssets().open("Licenses/" + licenseName + ".txt");
+                                    String licenseName = xmlParser.getText();
+                                    Parser mdParser = Parser.builder().build();
+                                    HtmlRenderer mdRenderer = HtmlRenderer.builder().build();
+                                    try (InputStream licenseStream = context.getAssets().open("Licenses/" + licenseName + ".md");
                                          InputStreamReader licenseReader = new InputStreamReader(licenseStream);
                                          BufferedReader reader = new BufferedReader(licenseReader))
                                     {
-                                        int charCode;
-                                        while ((charCode = reader.read()) >= 0) {
-                                            licenseBuffer.append((char)charCode);
-                                        }
+                                        Node licenseDocument = mdParser.parseReader(reader);
+                                        license = mdRenderer.render(licenseDocument);
                                     }
                                 } else {
-                                    skipCurrentTag(parser);
+                                    skipCurrentTag(xmlParser);
                                 }
                             }
                         }
 
-                        _openSourceSoftware.add(new OpenSourceSoftware(softwareName, softwareUrl, licenseBuffer.toString()));
+                        _openSourceSoftware.add(new OpenSourceSoftware(softwareName, softwareUrl, license));
                     } else {
-                        skipCurrentTag(parser);
+                        skipCurrentTag(xmlParser);
                     }
                 }
             }
         } catch (IllegalArgumentException | XmlPullParserException | IOException e) {
             // TODO: Implement logging and exception handling
-            Log.e("", e.getMessage());
+            Log.e(this.getClass().getName(), e.getMessage());
             throw e;
         }
     }
