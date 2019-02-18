@@ -10,8 +10,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.NumberPicker;
 
-import cole.matthew.vivace.Exceptions.InvalidTempoException;
-import cole.matthew.vivace.Exceptions.NegativeNumberException;
+import cole.matthew.vivace.Models.Exceptions.InvalidTempoException;
+import cole.matthew.vivace.Models.Exceptions.NegativeNumberException;
 import cole.matthew.vivace.R;
 
 public final class TempoPickerPreference extends DialogPreference {

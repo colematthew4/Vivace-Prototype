@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
-import cole.matthew.vivace.Helpers.BaseVivacePreferenceFragment;
 import cole.matthew.vivace.R;
 
 /**

@@ -26,9 +26,11 @@ public final class OpenSourceSoftwareContent {
 
     /**
      * Creates an instance of a {@link OpenSourceSoftwareContent} object.
+     *
      * @param context The context to attach the display to.
-     * @throws IOException
-     * @throws XmlPullParserException
+     *
+     * @exception IOException
+     * @exception XmlPullParserException
      */
     public OpenSourceSoftwareContent(Context context)
             throws IOException, XmlPullParserException
@@ -39,6 +41,7 @@ public final class OpenSourceSoftwareContent {
 
     /**
      * Gets the third party libraries used to build Vivace.
+     *
      * @return A {@link List} of {@link OpenSourceSoftware}.
      */
     public List<OpenSourceSoftware> getOpenSourceSoftware() {
@@ -47,24 +50,24 @@ public final class OpenSourceSoftwareContent {
 
     /**
      * Parses the third party libraries used by Vivace from an xml resource file.
+     *
      * @param context Context to get the xml resource from.
-     * @throws IOException
-     * @throws XmlPullParserException
+     *
+     * @exception IOException
+     * @exception XmlPullParserException
      */
     private void loadSoftwareFromResource(Context context)
             throws IOException, XmlPullParserException
     {
         try (XmlResourceParser xmlParser = context.getResources().getXml(R.xml.oss)) {
             int xmlTagType;
-            while ((xmlTagType = xmlParser.next()) != XmlResourceParser.END_DOCUMENT &&
-                   xmlTagType != XmlResourceParser.START_TAG) {
+            while ((xmlTagType = xmlParser.next()) != XmlResourceParser.END_DOCUMENT && xmlTagType != XmlResourceParser.START_TAG) {
                 // parse until start tag is found
             }
 
             String openTagName = xmlParser.getName();
             if (!"oss".equals(openTagName)) {
-                throw new XmlPullParserException("XML Document must start with <oss> tag; found " +
-                                                 openTagName + " at " + xmlParser.getPositionDescription());
+                throw new XmlPullParserException("XML Document must start with <oss> tag; found " + openTagName + " at " + xmlParser.getPositionDescription());
             }
 
             final int outerDepth = xmlParser.getDepth();
@@ -77,30 +80,33 @@ public final class OpenSourceSoftwareContent {
                         String license = null;
 
                         final int innerDepth = xmlParser.getDepth();
-                        while ((xmlTagType = xmlParser.next()) != XmlResourceParser.END_DOCUMENT && (xmlTagType != XmlResourceParser.END_TAG || xmlParser.getDepth() > innerDepth)) {
+                        while ((xmlTagType = xmlParser.next()) != XmlResourceParser.END_DOCUMENT &&
+                               (xmlTagType != XmlResourceParser.END_TAG || xmlParser.getDepth() > innerDepth)) {
                             if (xmlTagType != XmlResourceParser.END_TAG && xmlTagType != XmlResourceParser.TEXT) {
                                 String innerNodeName = xmlParser.getName();
                                 if ("name".equals(innerNodeName)) {
-                                    if (xmlParser.next() != XmlResourceParser.TEXT)
+                                    if (xmlParser.next() != XmlResourceParser.TEXT) {
                                         continue;
+                                    }
 
                                     softwareName = xmlParser.getText();
                                 } else if ("url".equals(innerNodeName)) {
-                                    if (xmlParser.next() != XmlResourceParser.TEXT)
+                                    if (xmlParser.next() != XmlResourceParser.TEXT) {
                                         continue;
+                                    }
 
                                     softwareUrl = xmlParser.getText();
                                 } else if ("license".equals(innerNodeName)) {
-                                    if (xmlParser.next() != XmlResourceParser.TEXT)
+                                    if (xmlParser.next() != XmlResourceParser.TEXT) {
                                         continue;
+                                    }
 
                                     String licenseName = xmlParser.getText();
                                     Parser mdParser = Parser.builder().build();
                                     HtmlRenderer mdRenderer = HtmlRenderer.builder().build();
-                                    try (InputStream licenseStream = context.getAssets().open("Licenses/" + licenseName + ".md");
-                                         InputStreamReader licenseReader = new InputStreamReader(licenseStream);
-                                         BufferedReader reader = new BufferedReader(licenseReader))
-                                    {
+                                    try (InputStream licenseStream = context.getAssets()
+                                                                            .open("Licenses/" + licenseName + ".md"); InputStreamReader licenseReader = new InputStreamReader(
+                                            licenseStream); BufferedReader reader = new BufferedReader(licenseReader)) {
                                         Node licenseDocument = mdParser.parseReader(reader);
                                         license = mdRenderer.render(licenseDocument);
                                     }
@@ -125,17 +131,19 @@ public final class OpenSourceSoftwareContent {
 
     /**
      * Skips forward to the next XML tag.
+     *
      * @param parser the parser to skip forward in.
-     * @throws IOException
-     * @throws XmlPullParserException
+     *
+     * @exception IOException
+     * @exception XmlPullParserException
      */
     private void skipCurrentTag(XmlResourceParser parser)
-            throws IOException, XmlPullParserException {
+            throws IOException, XmlPullParserException
+    {
         int outerDepth = parser.getDepth();
         int type;
 
-        while ((type = parser.next()) != XmlResourceParser.END_DOCUMENT &&
-               (type != XmlResourceParser.END_TAG || parser.getDepth() > outerDepth)) {
+        while ((type = parser.next()) != XmlResourceParser.END_DOCUMENT && (type != XmlResourceParser.END_TAG || parser.getDepth() > outerDepth)) {
             //skip all other nodes
         }
     }
@@ -150,10 +158,12 @@ public final class OpenSourceSoftwareContent {
 
         /**
          * Creates an instance of a {@link OpenSourceSoftware} object.
-         * @param name The name of the library.
-         * @param url The url where the library is hosted.
+         *
+         * @param name    The name of the library.
+         * @param url     The url where the library is hosted.
          * @param license The license the library is issued under.
-         * @throws IllegalArgumentException When the name, url or license is null or empty.
+         *
+         * @exception IllegalArgumentException When the name, url or license is null or empty.
          */
         OpenSourceSoftware(String name, String url, String license)
                 throws IllegalArgumentException
@@ -173,6 +183,7 @@ public final class OpenSourceSoftwareContent {
 
         /**
          * Gets the name of the third party library.
+         *
          * @return The name of the library.
          */
         public String getName() {
@@ -181,6 +192,7 @@ public final class OpenSourceSoftwareContent {
 
         /**
          * Gets the url where the third party library is hosted.
+         *
          * @return The url where the library is hosted.
          */
         public String getUrl() {
@@ -189,6 +201,7 @@ public final class OpenSourceSoftwareContent {
 
         /**
          * Gets the name of the license the third party library utilizes.
+         *
          * @return The name of the license.
          */
         public String getLicense() {

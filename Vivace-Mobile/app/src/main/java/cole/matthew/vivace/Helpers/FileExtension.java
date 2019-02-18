@@ -35,13 +35,16 @@ public final class FileExtension {
      */
     @Contract("null -> null")
     public static String getExtension(final String fileName)
-            throws IllegalArgumentException {
-        if (fileName == null)
+            throws IllegalArgumentException
+    {
+        if (fileName == null) {
             return null;
+        }
 
         final int index = indexOfExtension(fileName);
-        if (index == -1)
+        if (index == -1) {
             return "";
+        }
 
         return fileName.substring(index + 1);
     }
@@ -70,9 +73,11 @@ public final class FileExtension {
      *                                     the identifier of an Alternate Data Stream, for example "foo.exe:bar.txt".
      */
     private static int indexOfExtension(final String fileName)
-            throws IllegalArgumentException {
-        if (fileName == null)
+            throws IllegalArgumentException
+    {
+        if (fileName == null) {
             return -1;
+        }
 
         final int extensionPos = fileName.lastIndexOf('.');
         final int lastSeparator = indexOfLastSeparator(fileName);
@@ -93,8 +98,9 @@ public final class FileExtension {
      * is no such character
      */
     private static int indexOfLastSeparator(final String fileName) {
-        if (fileName == null)
+        if (fileName == null) {
             return -1;
+        }
 
         return fileName.lastIndexOf('/');
     }

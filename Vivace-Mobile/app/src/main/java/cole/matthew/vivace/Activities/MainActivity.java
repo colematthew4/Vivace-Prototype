@@ -42,7 +42,7 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import cole.matthew.vivace.BuildConfig;
-import cole.matthew.vivace.Exceptions.StorageNotReadableException;
+import cole.matthew.vivace.Models.Exceptions.StorageNotReadableException;
 import cole.matthew.vivace.Fragments.TempoPickerFragment;
 import cole.matthew.vivace.Fragments.TimeSignaturePickerFragment;
 import cole.matthew.vivace.Fragments.ToolbarFragment;
@@ -67,11 +67,7 @@ import nu.xom.Serializer;
 //import org.apache.commons.math3.transform.FastFourierTransformer;
 //import org.apache.commons.math3.transform.TransformType;
 
-public class MainActivity extends BaseVivaceActivity
-        implements TempoPickerFragment.NoticeTempoDialogListener,
-                   TimeSignaturePickerFragment.NoticeTimeSignDialogListener,
-                   ScorePartWise.OnNewMeasureListener
-{
+public class MainActivity extends BaseVivaceActivity implements TempoPickerFragment.NoticeTempoDialogListener, TimeSignaturePickerFragment.NoticeTimeSignDialogListener, ScorePartWise.OnNewMeasureListener {
     public static final String APPLICATION_TAG = "Vivace_Tag";
     public final String IS_RECORDING_TAG = "IsRecording_Tag";
     public final String TIME_SIGNATURE_TAG = "TimeSignature_Tag";
@@ -104,7 +100,7 @@ public class MainActivity extends BaseVivaceActivity
         int seconds = (int)(millis / 1000) % 60;
         int minutes = seconds / 60;
         _recordingTimer.setText(String.format(Locale.US, "%02d:%02d", minutes, seconds));
-//        timerHandler.postDelayed(, 500);
+        //        timerHandler.postDelayed(, 500);
     };
 
     /** {@inheritDoc} */
@@ -117,35 +113,36 @@ public class MainActivity extends BaseVivaceActivity
         Toolbar toolbar = (Toolbar)toolbarFragment.getView();
         setSupportActionBar(toolbar);
 
-        if (savedInstanceState != null)
+        if (savedInstanceState != null) {
             IsRecording = savedInstanceState.getBoolean(IS_RECORDING_TAG, false);
+        }
 
-//        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-//        _timeSignature = new TimeSignature(preferences.getString(TIME_SIGNATURE_TAG, "4/4"));
-//        _bpm = preferences.getInt(BPM_TAG, 120);
-//        _startTime = preferences.getLong(STARTTIME_TAG, 0);
+        //        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        //        _timeSignature = new TimeSignature(preferences.getString(TIME_SIGNATURE_TAG, "4/4"));
+        //        _bpm = preferences.getInt(BPM_TAG, 120);
+        //        _startTime = preferences.getLong(STARTTIME_TAG, 0);
         //        _score = new Pattern();
-//        _scorePartWise = ScorePartWise.createInstance(this, _timeSignature, _bpm);
+        //        _scorePartWise = ScorePartWise.createInstance(this, _timeSignature, _bpm);
 
-//        _tempoTextView = findViewById(R.id.tempo);
-//        _tempoTextView.setText(_bpm + " BPM");
-//        _tempoTextView.setOnClickListener(view -> {
-//              Bundle arguments = new Bundle();
-//              arguments.putInt("TempoValue", _bpm);
-//              TempoPickerFragment tempoPickerFragment = new TempoPickerFragment();
-//              tempoPickerFragment.setArguments(arguments);
-//              tempoPickerFragment.show(getFragmentManager(), "TempoPicker");
-//          });
-//
-//        _timeSignatureTextView = findViewById(R.id.timeSignSelector);
-//        _timeSignatureTextView.setText(_timeSignature.toString());
-//        _timeSignatureTextView.setOnClickListener(view -> {
-//            Bundle arguments = new Bundle();
-//            arguments.putString("TimeSignValue", _timeSignature.toString());
-//            TimeSignaturePickerFragment timeSignPickerFragment = new TimeSignaturePickerFragment();
-//            timeSignPickerFragment.setArguments(arguments);
-//            timeSignPickerFragment.show(getFragmentManager(), "TempoPicker");
-//        });
+        //        _tempoTextView = findViewById(R.id.tempo);
+        //        _tempoTextView.setText(_bpm + " BPM");
+        //        _tempoTextView.setOnClickListener(view -> {
+        //              Bundle arguments = new Bundle();
+        //              arguments.putInt("TempoValue", _bpm);
+        //              TempoPickerFragment tempoPickerFragment = new TempoPickerFragment();
+        //              tempoPickerFragment.setArguments(arguments);
+        //              tempoPickerFragment.show(getFragmentManager(), "TempoPicker");
+        //          });
+        //
+        //        _timeSignatureTextView = findViewById(R.id.timeSignSelector);
+        //        _timeSignatureTextView.setText(_timeSignature.toString());
+        //        _timeSignatureTextView.setOnClickListener(view -> {
+        //            Bundle arguments = new Bundle();
+        //            arguments.putString("TimeSignValue", _timeSignature.toString());
+        //            TimeSignaturePickerFragment timeSignPickerFragment = new TimeSignaturePickerFragment();
+        //            timeSignPickerFragment.setArguments(arguments);
+        //            timeSignPickerFragment.show(getFragmentManager(), "TempoPicker");
+        //        });
 
         _scoreUI = findViewById(R.id.scoreUI);
         //        _recordButton = findViewById(R.id.recordButton);
@@ -317,11 +314,11 @@ public class MainActivity extends BaseVivaceActivity
     protected void onPause() {
         Log.d(APPLICATION_TAG, "MainActivity - OnPause");
         timerHandler.removeCallbacks(timerRunnable);
-//        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-//        editor.putString(TIME_SIGNATURE_TAG, _timeSignature.toString());
-//        editor.putInt(BPM_TAG, _bpm);
-//        editor.putLong(STARTTIME_TAG, _startTime);
-//        editor.apply();
+        //        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+        //        editor.putString(TIME_SIGNATURE_TAG, _timeSignature.toString());
+        //        editor.putInt(BPM_TAG, _bpm);
+        //        editor.putLong(STARTTIME_TAG, _startTime);
+        //        editor.apply();
         super.onPause();
     }
 
@@ -401,8 +398,7 @@ public class MainActivity extends BaseVivaceActivity
                             .putExtra(Intent.EXTRA_TEXT, "Sharing a file...")
                             .putExtra(Intent.EXTRA_SUBJECT, "Subject");
                     startActivityForResult(Intent.createChooser(shareIntent, "Share Your Recording"), 3461);
-                }
-                catch (IOException | StorageNotReadableException e) {
+                } catch (IOException | StorageNotReadableException e) {
                     new AlertDialog.Builder(this)
                             .setTitle("Error Encountered")
                             .setMessage("Vivace was unable to share your recording.")
@@ -430,35 +426,39 @@ public class MainActivity extends BaseVivaceActivity
 
         switch (requestCode) {
             case VivacePermissionCodes.RECORD_AUDIO:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     _recordButton.setVisibility(View.VISIBLE);                 // permission granted
-                else
+                } else {
                     _recordButton.setVisibility(View.INVISIBLE);                // permission denied
+                }
 
                 break;
             case VivacePermissionCodes.INTERNET:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     _scoreUI.setVisibility(View.VISIBLE);                      // permission granted
-                else
+                } else {
                     _scoreUI.setVisibility(View.INVISIBLE);                     // permission denied
+                }
 
                 break;
             case VivacePermissionCodes.READ_EXTERNAL_STORAGE:
                 assert toolbar != null;
 
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     toolbar.getMenu().findItem(R.id.action_share).setVisible(true);     // permission granted
-                else
+                } else {
                     toolbar.getMenu().findItem(R.id.action_share).setVisible(false);    // permission denied
+                }
 
                 break;
             case VivacePermissionCodes.WRITE_EXTERNAL_STORAGE:
                 assert toolbar != null;
 
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     toolbar.getMenu().findItem(R.id.action_share).setVisible(true);     // permission granted
-                else
+                } else {
                     toolbar.getMenu().findItem(R.id.action_share).setVisible(false);    // permission denied
+                }
 
                 break;
             default:
@@ -508,8 +508,7 @@ public class MainActivity extends BaseVivaceActivity
                     Log.d(APPLICATION_TAG, "MainActivity - onNewMeasure: " + value);
                 });
             });
-        }
-        catch (NullPointerException e) {
+        } catch (NullPointerException e) {
             Log.e(APPLICATION_TAG, "MainActivity - onNewMeasure: " + e.getMessage());
         }
     }
@@ -526,7 +525,7 @@ public class MainActivity extends BaseVivaceActivity
                 private int sampleSize = 44100;
                 //private int bufferSize = AudioRecord.getMinBufferSize(sampleSize, channel_config, format);
                 // must be a power of 2 for the FFT transform to work
-                private int bufferSize = closestPowerOf2(sampleSize / (_bpm * 4 / 60));
+                private int bufferSize = closestPowerOf2(sampleSize / (_bpm * 4f / 60f));
                 private AudioRecord audioInput = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleSize, channel_config, format, bufferSize);
 
                 /** {@inheritDoc} */
@@ -550,9 +549,10 @@ public class MainActivity extends BaseVivaceActivity
                             short bLow = audioBuffer[i];
                             short bHigh = audioBuffer[i + 1];
 
-                            buffer[idx++] = (bLow & 0xFF | bHigh << 8) / 32767;
-                            if (channel_config == AudioFormat.CHANNEL_IN_STEREO)
+                            buffer[idx++] = (bLow & 0xFF | bHigh << 8) / 32767f;
+                            if (channel_config == AudioFormat.CHANNEL_IN_STEREO) {
                                 i += 2;
+                            }
                         }
 
                         FastFourierTransform fft = new FastFourierTransform(DFTNormalization.STANDARD);
@@ -579,8 +579,7 @@ public class MainActivity extends BaseVivaceActivity
                             //                                    _recordingTimer.setText("");
                             //                                }
                             //                            });
-                        }
-                        else {
+                        } else {
                             Log.d(TAG, "Found: " + keys.toString());
                             //_scorePartWise.addNote(keys.keySet(), 0.25);
                             String pitch = (String)keys.keySet().toArray()[0];
@@ -622,16 +621,16 @@ public class MainActivity extends BaseVivaceActivity
                     int result = -1;
 
                     for (int index = powers_of_2.length - 1; result == -1 && index > 0; index--) {
-                        if (powers_of_2[index] > sixteenthsPerSecond && powers_of_2[index - 1] < sixteenthsPerSecond)
+                        if (powers_of_2[index] > sixteenthsPerSecond && powers_of_2[index - 1] < sixteenthsPerSecond) {
                             result = (int)powers_of_2[index - 1];
+                        }
                     }
 
                     return result;
                 }
             });
             thread.start();
-        }
-        else {
+        } else {
             IsRecording = false;
             timerHandler.removeCallbacks(timerRunnable);
         }
@@ -655,20 +654,19 @@ public class MainActivity extends BaseVivaceActivity
             scoreUISettings.setBuiltInZoomControls(true);
             scoreUISettings.setDisplayZoomControls(false);
 
-            if (BuildConfig.DEBUG)
+            if (BuildConfig.DEBUG) {
                 WebView.setWebContentsDebuggingEnabled(true);
-        }
-        catch (IOException e) {
+            }
+        } catch (IOException e) {
             Log.e(APPLICATION_TAG, e.getMessage());
             _recordButton.setVisibility(View.INVISIBLE);
-            new AlertDialog.Builder(this).setTitle("Error")
-                                         .setMessage("An issue was encountered displaying the Music Sheet. Please " +
-                                                     "quit and restart the application to continue. If this issue " +
-                                                     "persists, please submit a report to https://github.com/colematthew4/Vivace/issues/new " +
-                                                     "and describe your issue in detail.")
-                                         .setPositiveButton("Ok", (dialog, which) -> dialog.dismiss())
-                                         .create()
-                                         .show();
+            new AlertDialog.Builder(this)
+                    .setTitle("Error")
+                    .setMessage("An issue was encountered displaying the Music Sheet. Please quit and restart the application to continue. If this issue persists, please submit a " +
+                                "report to https://github.com/colematthew4/Vivace/issues/new and describe your issue in detail.")
+                    .setPositiveButton("Ok", (dialog, which) -> dialog.dismiss())
+                    .create()
+                    .show();
         }
     }
 }

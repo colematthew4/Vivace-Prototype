@@ -1,4 +1,4 @@
-package cole.matthew.vivace.Exceptions;
+package cole.matthew.vivace.Models.Exceptions;
 
 import java.util.Locale;
 

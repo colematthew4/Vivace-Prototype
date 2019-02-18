@@ -36,22 +36,17 @@ public class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder {
      */
     OpenSourceSoftwareViewHolder(View ossContainerView) {
         super(ossContainerView);
-        View.OnClickListener expandListener = v -> {
+        ossContainerView.findViewById(R.id.oss_banner).setOnClickListener(v -> {
             if (_animationState == AnimationState.EXPANDED) {
                 collapse();
             } else if (_animationState == AnimationState.COLLAPSED) {
                 expand();
             }
-        };
+        });
 
         _nameTextView = ossContainerView.findViewById(R.id.oss_name);
-        _nameTextView.setOnClickListener(expandListener);
-
         _dropdownImage = ossContainerView.findViewById(R.id.dropdown_arrow);
-        _dropdownImage.setOnClickListener(expandListener);
-
         _ossContentContainer = ossContainerView.findViewById(R.id.oss_content);
-
         _repoLinkTextView = ossContainerView.findViewById(R.id.repo_link);
         _repoLinkTextView.setMovementMethod(LinkMovementMethod.getInstance());
 

@@ -45,11 +45,12 @@ public abstract class AppCompatPreferenceActivity extends PreferenceActivity {
     }
 
     /**
-     *  Create a {@link android.support.v7.app.AppCompatDelegate} to use with {@code activity}.
+     * Create a {@link android.support.v7.app.AppCompatDelegate} to use with {@code activity}.
      */
     private AppCompatDelegate getDelegate() {
-        if (mDelegate == null)
+        if (mDelegate == null) {
             mDelegate = AppCompatDelegate.create(this, null);
+        }
 
         return mDelegate;
     }

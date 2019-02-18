@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 
-import cole.matthew.vivace.Exceptions.InvalidFileException;
+import cole.matthew.vivace.Models.Exceptions.InvalidFileException;
 import cole.matthew.vivace.Helpers.FileExtension;
 
 import static android.icu.text.DateFormat.getDateTimeInstance;
@@ -16,8 +16,9 @@ public final class RecordingFactory {
     public IRecording getRecording(File file)
             throws FileNotFoundException, InvalidFileException
     {
-        if (file == null || !file.exists())
+        if (file == null || !file.exists()) {
             throw new FileNotFoundException("This file does not exist.");
+        }
 
         String name = file.getName();
         String filePath = file.getPath();

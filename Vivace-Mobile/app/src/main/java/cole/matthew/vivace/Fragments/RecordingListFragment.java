@@ -17,8 +17,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import cole.matthew.vivace.Exceptions.StorageNotReadableException;
-import cole.matthew.vivace.Exceptions.StorageNotWritableException;
+import cole.matthew.vivace.Models.Exceptions.StorageNotReadableException;
+import cole.matthew.vivace.Models.Exceptions.StorageNotWritableException;
 import cole.matthew.vivace.Helpers.RecordingListRecyclerViewAdapter;
 import cole.matthew.vivace.Helpers.RecyclerViewItemTouchHelper;
 import cole.matthew.vivace.Models.Recordings.IRecording;

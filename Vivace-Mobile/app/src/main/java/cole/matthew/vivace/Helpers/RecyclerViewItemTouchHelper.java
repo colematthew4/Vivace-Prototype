@@ -51,7 +51,7 @@ public class RecyclerViewItemTouchHelper extends ItemTouchHelper.SimpleCallback 
     @Override
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
         if (viewHolder != null) {
-            final View foregroundView = ((RecordingListRecyclerViewAdapter.RecordingViewHolder) viewHolder).getForeground();
+            final View foregroundView = ((RecordingListRecyclerViewAdapter.RecordingViewHolder)viewHolder).getForeground();
             getDefaultUIUtil().onSelected(foregroundView);
         }
     }
@@ -59,20 +59,20 @@ public class RecyclerViewItemTouchHelper extends ItemTouchHelper.SimpleCallback 
     /** {@inheritDoc} */
     @Override
     public void onChildDrawOver(@NonNull Canvas c, @NonNull RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-        final View foregroundView = ((RecordingListRecyclerViewAdapter.RecordingViewHolder) viewHolder).getForeground();
+        final View foregroundView = ((RecordingListRecyclerViewAdapter.RecordingViewHolder)viewHolder).getForeground();
         getDefaultUIUtil().onDrawOver(c, recyclerView, foregroundView, dX, dY, actionState, isCurrentlyActive);
     }
 
     /** {@inheritDoc} */
     @Override
     public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-        getDefaultUIUtil().clearView(((RecordingListRecyclerViewAdapter.RecordingViewHolder) viewHolder).getForeground());
+        getDefaultUIUtil().clearView(((RecordingListRecyclerViewAdapter.RecordingViewHolder)viewHolder).getForeground());
     }
 
     /** {@inheritDoc} */
     @Override
     public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-        final View foregroundView = ((RecordingListRecyclerViewAdapter.RecordingViewHolder) viewHolder).getForeground();
+        final View foregroundView = ((RecordingListRecyclerViewAdapter.RecordingViewHolder)viewHolder).getForeground();
         getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY, actionState, isCurrentlyActive);
     }
 

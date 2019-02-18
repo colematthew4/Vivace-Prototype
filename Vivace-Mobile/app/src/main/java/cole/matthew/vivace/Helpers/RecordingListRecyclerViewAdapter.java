@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import cole.matthew.vivace.Exceptions.StorageNotReadableException;
-import cole.matthew.vivace.Exceptions.StorageNotWritableException;
+import cole.matthew.vivace.Models.Exceptions.StorageNotReadableException;
+import cole.matthew.vivace.Models.Exceptions.StorageNotWritableException;
 import cole.matthew.vivace.Fragments.RecordingListFragment.OnListFragmentInteractionListener;
 import cole.matthew.vivace.Models.Recordings.IRecording;
 import cole.matthew.vivace.R;

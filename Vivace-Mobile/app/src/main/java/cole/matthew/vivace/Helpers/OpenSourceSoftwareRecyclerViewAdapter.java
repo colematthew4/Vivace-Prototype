@@ -22,6 +22,7 @@ public class OpenSourceSoftwareRecyclerViewAdapter extends RecyclerView.Adapter<
 
     /**
      * Creates an instance of an {@link OpenSourceSoftwareRecyclerViewAdapter} with the given contents.
+     *
      * @param oss The {@link OpenSourceSoftware} to insert into the {@link RecyclerView}.
      */
     public OpenSourceSoftwareRecyclerViewAdapter(@NotNull List<OpenSourceSoftwareContent.OpenSourceSoftware> oss) {

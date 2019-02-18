@@ -1,4 +1,4 @@
-package cole.matthew.vivace.Helpers;
+package cole.matthew.vivace.Fragments;
 
 import android.preference.ListPreference;
 import android.preference.Preference;

@@ -22,11 +22,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import cole.matthew.vivace.Exceptions.InsufficientStorageException;
-import cole.matthew.vivace.Exceptions.StorageNotReadableException;
-import cole.matthew.vivace.Exceptions.StorageNotWritableException;
+import cole.matthew.vivace.Models.Exceptions.InsufficientStorageException;
+import cole.matthew.vivace.Models.Exceptions.StorageNotReadableException;
+import cole.matthew.vivace.Models.Exceptions.StorageNotWritableException;
 import cole.matthew.vivace.Fragments.ToolbarFragment;
-import cole.matthew.vivace.Helpers.BaseVivacePreferenceFragment;
+import cole.matthew.vivace.Fragments.BaseVivacePreferenceFragment;
 import cole.matthew.vivace.Helpers.FileStore;
 import cole.matthew.vivace.R;
 
@@ -60,12 +60,12 @@ public final class SettingsActivity extends AppCompatPreferenceActivity implemen
             try {
                 FileStore fileStore = new FileStore((Activity)preference.getContext());
 
-                if (switchValue)
+                if (switchValue) {
                     fileStore.transferStorageToPublic();
-                else
+                } else {
                     fileStore.transferStorageToPrivate();
-            }
-            catch (InsufficientStorageException e) {
+                }
+            } catch (InsufficientStorageException e) {
                 result = false;
                 new AlertDialog.Builder(preference.getContext())
                         .setTitle("Not Enough Storage")
@@ -73,8 +73,7 @@ public final class SettingsActivity extends AppCompatPreferenceActivity implemen
                         .setPositiveButton("Ok", (dialog, which) -> dialog.dismiss())
                         .create()
                         .show();
-            }
-            catch (StorageNotReadableException | StorageNotWritableException e) {
+            } catch (StorageNotReadableException | StorageNotWritableException e) {
                 result = false;
                 new AlertDialog.Builder(preference.getContext())
                         .setTitle("Failed to Save Recordings to Device Storage")
@@ -119,8 +118,9 @@ public final class SettingsActivity extends AppCompatPreferenceActivity implemen
 
         switch (item.getItemId()) {
             case android.R.id.home:
-                if (!super.onMenuItemSelected(featureId, item))
+                if (!super.onMenuItemSelected(featureId, item)) {
                     NavUtils.navigateUpFromSameTask(this);
+                }
 
                 break;
             default:
@@ -142,8 +142,7 @@ public final class SettingsActivity extends AppCompatPreferenceActivity implemen
      * example, 10" tablets are extra-large.
      */
     private static boolean isXLargeTablet(@NotNull Context context) {
-        return (context.getResources().getConfiguration().screenLayout &
-                Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
+        return (context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
     }
 
     /** {@inheritDoc} */
@@ -158,8 +157,7 @@ public final class SettingsActivity extends AppCompatPreferenceActivity implemen
      * Make sure to deny any unknown fragments here.
      */
     protected boolean isValidFragment(String fragmentName) {
-        return PreferenceFragment.class.getName().equals(fragmentName) ||
-               VivaceSettingsPreferenceFragment.class.getName().equals(fragmentName);
+        return PreferenceFragment.class.getName().equals(fragmentName) || VivaceSettingsPreferenceFragment.class.getName().equals(fragmentName);
     }
 
     /**

@@ -19,10 +19,10 @@ import java.util.List;
 
 import cole.matthew.vivace.Activities.SettingsActivity;
 import cole.matthew.vivace.BuildConfig;
-import cole.matthew.vivace.Exceptions.InsufficientStorageException;
-import cole.matthew.vivace.Exceptions.InvalidFileException;
-import cole.matthew.vivace.Exceptions.StorageNotReadableException;
-import cole.matthew.vivace.Exceptions.StorageNotWritableException;
+import cole.matthew.vivace.Models.Exceptions.InsufficientStorageException;
+import cole.matthew.vivace.Models.Exceptions.InvalidFileException;
+import cole.matthew.vivace.Models.Exceptions.StorageNotReadableException;
+import cole.matthew.vivace.Models.Exceptions.StorageNotWritableException;
 import cole.matthew.vivace.Models.Recordings.IRecording;
 import cole.matthew.vivace.Models.Recordings.RecordingFactory;
 
