@@ -22,6 +22,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.Contract;
@@ -38,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -67,7 +69,11 @@ import nu.xom.Serializer;
 //import org.apache.commons.math3.transform.FastFourierTransformer;
 //import org.apache.commons.math3.transform.TransformType;
 
-public class MainActivity extends BaseVivaceActivity implements TempoPickerFragment.NoticeTempoDialogListener, TimeSignaturePickerFragment.NoticeTimeSignDialogListener, ScorePartWise.OnNewMeasureListener {
+public class MainActivity extends BaseVivaceActivity
+        implements TempoPickerFragment.NoticeTempoDialogListener,
+                   TimeSignaturePickerFragment.NoticeTimeSignDialogListener,
+                   ScorePartWise.OnNewMeasureListener
+{
     public static final String APPLICATION_TAG = "Vivace_Tag";
     public final String IS_RECORDING_TAG = "IsRecording_Tag";
     public final String TIME_SIGNATURE_TAG = "TimeSignature_Tag";
@@ -82,6 +88,7 @@ public class MainActivity extends BaseVivaceActivity implements TempoPickerFragm
     private TextView _recordingTimer;
     private ImageButton _pauseButton;
     private ImageButton _stopButton;
+    private DrawerLayout _activityLayout;
 
     public static Pattern _score;
     public static ScorePartWise _scorePartWise;
@@ -116,6 +123,8 @@ public class MainActivity extends BaseVivaceActivity implements TempoPickerFragm
         if (savedInstanceState != null) {
             IsRecording = savedInstanceState.getBoolean(IS_RECORDING_TAG, false);
         }
+
+        _activityLayout = findViewById(R.id.activity_layout);
 
         //        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         //        _timeSignature = new TimeSignature(preferences.getString(TIME_SIGNATURE_TAG, "4/4"));
@@ -411,6 +420,14 @@ public class MainActivity extends BaseVivaceActivity implements TempoPickerFragm
             case R.id.action_open:
                 startActivity(new Intent(this, OpenRecordingActivity.class));
                 break;
+            case R.id.action_audio_settings:
+                View sidePanel = findViewById(R.id.audio_settings_side_layout);
+                if (_activityLayout.isDrawerVisible(sidePanel)) {
+                    _activityLayout.closeDrawer(sidePanel);
+                } else {
+                    _activityLayout.openDrawer(sidePanel);
+                }
+                break;
             default:
                 break;
         }
@@ -640,7 +657,7 @@ public class MainActivity extends BaseVivaceActivity implements TempoPickerFragm
     private void initializeWebView() {
         try {
             InputStream inputStream = getAssets().open("minifiedHTML.html");
-            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             StringBuilder stringBuilder = new StringBuilder();
 
             for (String string; (string = in.readLine()) != null; )
