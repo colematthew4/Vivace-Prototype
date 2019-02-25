@@ -1,5 +1,6 @@
 package cole.matthew.vivace.Activities;
 
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,17 +13,19 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.Contract;
@@ -44,7 +47,6 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import cole.matthew.vivace.BuildConfig;
-import cole.matthew.vivace.Models.Exceptions.StorageNotReadableException;
 import cole.matthew.vivace.Fragments.TempoPickerFragment;
 import cole.matthew.vivace.Fragments.TimeSignaturePickerFragment;
 import cole.matthew.vivace.Fragments.ToolbarFragment;
@@ -57,6 +59,7 @@ import cole.matthew.vivace.Math.DFTNormalization;
 import cole.matthew.vivace.Math.DiscreteFourierTransform;
 import cole.matthew.vivace.Math.FastFourierTransform;
 import cole.matthew.vivace.Math.TransformType;
+import cole.matthew.vivace.Models.Exceptions.StorageNotReadableException;
 import cole.matthew.vivace.Models.Measure;
 import cole.matthew.vivace.Models.Note;
 import cole.matthew.vivace.Models.ScorePartWise;
@@ -102,12 +105,43 @@ public class MainActivity extends BaseVivaceActivity
     /**
      * This provides the functionality of Vivace's recording timer.
      */
-    private Runnable timerRunnable = () -> {
+    private final Runnable timerRunnable = () -> {
         long millis = System.currentTimeMillis() - _startTime;
         int seconds = (int)(millis / 1000) % 60;
         int minutes = seconds / 60;
         _recordingTimer.setText(String.format(Locale.US, "%02d:%02d", minutes, seconds));
         //        timerHandler.postDelayed(, 500);
+    };
+
+    private ValueAnimator _valueAnimator;
+    private int _scrollY;
+    private int _oldScrollY;
+
+    private final View.OnScrollChangeListener _scrollChangeListener = new View.OnScrollChangeListener() {
+        /** {@inheritDoc} */
+        @Override
+        public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+            _scrollY = scrollY;
+            _oldScrollY = oldScrollY;
+//            Log.d(APPLICATION_TAG, "new scroll = " + _scrollY + "; old scroll = " + _oldScrollY);
+            if (_scrollY > _oldScrollY && _scrollY - _oldScrollY <= 150) {
+//                _valueAnimator.setIntValues(255, 0);
+                getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE |
+                                                                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                                                                 View.SYSTEM_UI_FLAG_FULLSCREEN);
+            } else if (_scrollY < _oldScrollY && _scrollY - _oldScrollY < 150) {
+//                _valueAnimator.setIntValues(0, 255);
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+            }
+
+//            if (!_valueAnimator.isRunning()) {
+//                _valueAnimator.cancel();
+//            } else {
+//                _valueAnimator.start();
+//            }
+        }
     };
 
     /** {@inheritDoc} */
@@ -153,7 +187,10 @@ public class MainActivity extends BaseVivaceActivity
         //            timeSignPickerFragment.show(getFragmentManager(), "TempoPicker");
         //        });
 
-        _scoreUI = findViewById(R.id.scoreUI);
+        NestedScrollView contentScroller = findViewById(R.id.contentScroller);
+        if (contentScroller != null) {
+            contentScroller.setOnScrollChangeListener(_scrollChangeListener);
+        }
         //        _recordButton = findViewById(R.id.recordButton);
         //        _recordButton.setOnClickListener(new View.OnClickListener()
         //        {
@@ -315,7 +352,18 @@ public class MainActivity extends BaseVivaceActivity
         //                }
         //        });
 
+        _scoreUI = findViewById(R.id.scoreUI);
         initializeWebView();
+
+//        _valueAnimator = new ValueAnimator();
+//        _valueAnimator.setDuration(600);
+//        _valueAnimator.setInterpolator(AnimationUtils.FAST_OUT_LINEAR_IN_INTERPOLATOR);
+//        _valueAnimator.setIntValues(255, 0);
+//        _valueAnimator.addUpdateListener(animation -> {
+//            int value = (int)animation.getAnimatedValue();
+//            Log.d(APPLICATION_TAG, String.valueOf(value));
+//        });
+//        _valueAnimator.start();
     }
 
     /** {@inheritDoc} */

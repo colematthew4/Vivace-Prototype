@@ -6,15 +6,22 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:background="@color/colorWhite"
-	android:fitsSystemWindows="true"
 	tools:openDrawer="end"
 	tools:context=".Activities.MainActivity">
 	
-	<include
-		layout="@layout/app_bar_main"
+	<android.support.constraint.ConstraintLayout
+		android:id="@+id/constraintLayout"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent" />
+		android:layout_height="match_parent">
+		
+		<include
+			layout="@layout/app_bar_main"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent" />
+		
+		<include layout="@layout/record_bottom_bar" />
 	
+	</android.support.constraint.ConstraintLayout>
 	<RelativeLayout
 		android:id="@+id/audio_settings_side_layout"
 		android:layout_width="wrap_content"
@@ -29,4 +36,5 @@
 			android:layout_height="match_parent" />
 
 	</RelativeLayout>
+	
 </android.support.v4.widget.DrawerLayout>
