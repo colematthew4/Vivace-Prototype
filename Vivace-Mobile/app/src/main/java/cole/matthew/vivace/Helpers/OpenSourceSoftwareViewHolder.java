@@ -10,6 +10,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.RotateAnimation;
 import android.view.animation.Transformation;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -53,6 +54,8 @@ public class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder {
         _licenseView = ossContainerView.findViewById(R.id.license);
         _licenseView.getSettings().setLoadWithOverviewMode(true);
         _licenseView.getSettings().setUseWideViewPort(true);
+        _licenseView.getSettings().setDisplayZoomControls(false);
+        _licenseView.getSettings().setBuiltInZoomControls(true);
 
         _openArrowAnim = (RotateAnimation)AnimationUtils.loadAnimation(ossContainerView.getContext(), R.anim.dropdown_open);
         _closeArrowAnim = (RotateAnimation)AnimationUtils.loadAnimation(ossContainerView.getContext(), R.anim.dropdown_close);
