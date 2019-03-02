@@ -4,7 +4,7 @@
 		<EditTextPreference
 			android:defaultValue="@string/pref_default_file_name"
 			android:inputType="textCapWords"
-			android:key="file_storage_name"
+			android:key="@string/settings_key_storage_filename"
 			android:maxLines="1"
 			android:selectAllOnFocus="true"
 			android:singleLine="true"
@@ -14,22 +14,22 @@
 			android:defaultValue="-1"
 			android:entries="@array/pref_file_types"
 			android:entryValues="@array/pref_file_type_values"
-			android:key="file_storage_type"
+			android:key="@string/settings_key_storage_filetype"
 			android:negativeButtonText="@null"
 			android:positiveButtonText="@null"
 			android:title="@string/pref_title_file_type"
 			android:icon="@drawable/ic_music_file_black_24dp" />
 		<SwitchPreference
 			android:defaultValue="false"
-			android:key="file_storage_location"
+			android:key="@string/settings_key_storage_directory"
 			android:summary="@string/persist_recordings_summary"
 			android:title="@string/persist_recordings_title"
 			android:icon="@drawable/ic_storage_black_24dp" />
 	</PreferenceCategory>
 	<PreferenceCategory android:title="About">
 		<Preference
-			android:title="Third Party Software"
+			android:key="@string/settings_key_about_oss"
 			android:summary="Software that helped build Vivace"
-			android:key="oss_licenses" />
+			android:title="Third Party Software" />
 	</PreferenceCategory>
 </PreferenceScreen>

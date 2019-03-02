@@ -39,7 +39,7 @@
 		
 		<fragment
 			android:id="@+id/audio_settings_fragment"
-			android:name="cole.matthew.vivace.Fragments.AudioSettingsPreferenceFragment"
+			android:name="cole.matthew.vivace.Fragments.Settings.AudioSettingsPreferenceFragment"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			android:layout_gravity="center" />

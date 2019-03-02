@@ -17,7 +17,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import cole.matthew.vivace.Activities.SettingsActivity;
 import cole.matthew.vivace.BuildConfig;
 import cole.matthew.vivace.Models.Exceptions.InsufficientStorageException;
 import cole.matthew.vivace.Models.Exceptions.InvalidFileException;
@@ -25,6 +24,7 @@ import cole.matthew.vivace.Models.Exceptions.StorageNotReadableException;
 import cole.matthew.vivace.Models.Exceptions.StorageNotWritableException;
 import cole.matthew.vivace.Models.Recordings.IRecording;
 import cole.matthew.vivace.Models.Recordings.RecordingFactory;
+import cole.matthew.vivace.R;
 
 public class FileStore {
     private static final String TAG = "FileStore_Tag";
@@ -42,7 +42,7 @@ public class FileStore {
     public int getRecordingCount() {
         int recordingCount = 0;
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(_context);
-        final boolean usePublicStorage = sharedPreferences.getBoolean(SettingsActivity.KEY_FILE_STORAGE_LOCATION, false);
+        final boolean usePublicStorage = sharedPreferences.getBoolean(_context.getString(R.string.settings_key_storage_directory), false);
 
         if (isExternalStorageReadable()) {
             try {
@@ -64,7 +64,7 @@ public class FileStore {
     public List<IRecording> getRecordings() {
         List<IRecording> recordings = new ArrayList<>();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(_context);
-        final boolean usePublicStorage = sharedPreferences.getBoolean(SettingsActivity.KEY_FILE_STORAGE_LOCATION, false);
+        final boolean usePublicStorage = sharedPreferences.getBoolean(_context.getString(R.string.settings_key_storage_directory), false);
 
         if (isExternalStorageReadable()) {
             try {
@@ -318,7 +318,7 @@ public class FileStore {
         }
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(_context);
-        final boolean usePublicStorage = sharedPreferences.getBoolean(SettingsActivity.KEY_FILE_STORAGE_LOCATION, false);
+        final boolean usePublicStorage = sharedPreferences.getBoolean(_context.getString(R.string.settings_key_storage_directory), false);
 
         File storageDir = usePublicStorage ? getPublicStorageDir() : getPrivateStorageDir();
         delete(fileToDelete, storageDir);

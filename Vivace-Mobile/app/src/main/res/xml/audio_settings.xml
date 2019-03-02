@@ -4,7 +4,7 @@
 	
 	<ListPreference
 		android:title="Time Signature"
-		android:key="audio_setting_time_sign"
+		android:key="@string/settings_audio_time_sign"
 		android:defaultValue="-1"
 		android:entries="@array/time_signatures"
 		android:entryValues="@array/time_signature_values"
@@ -12,20 +12,17 @@
 		android:positiveButtonText="@null"
 		android:negativeButtonText="@null" />
 	
-	<cole.matthew.vivace.Fragments.TempoPickerPreference
+	<cole.matthew.vivace.Fragments.Settings.TempoPickerPreference
 		android:title="Tempo"
-		android:key="audio_setting_tempo"
+		android:key="@string/settings_audio_tempo"
 		android:defaultValue="120"
 		android:icon="@drawable/ic_tempo_marker"
-		android:dialogIcon="@drawable/ic_tempo_marker"
-		android:dialogLayout="@layout/tempo_picker"
-		android:dialogTitle="Pick The Tempo"
 		app:maxTempo="218"
 		app:minTempo="40" />
 	
 	<ListPreference
 		android:title="Instrument"
-		android:key="audio_setting_instrument"
+		android:key="@string/settings_audio_instrument"
 		android:defaultValue="-1"
 		android:entries="@array/instruments"
 		android:entryValues="@array/instrument_values"

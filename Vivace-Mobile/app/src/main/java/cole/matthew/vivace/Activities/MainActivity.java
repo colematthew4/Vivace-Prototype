@@ -1,10 +1,8 @@
 package cole.matthew.vivace.Activities;
 
-import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -52,7 +50,6 @@ import cole.matthew.vivace.Fragments.TimeSignaturePickerFragment;
 import cole.matthew.vivace.Fragments.ToolbarFragment;
 import cole.matthew.vivace.Helpers.FileStore;
 import cole.matthew.vivace.Helpers.VexFlowScriptGenerator;
-import cole.matthew.vivace.Helpers.VivacePermissionCodes;
 import cole.matthew.vivace.Helpers.VivacePermissions;
 import cole.matthew.vivace.Math.ComplexNumber;
 import cole.matthew.vivace.Math.DFTNormalization;
@@ -113,34 +110,19 @@ public class MainActivity extends BaseVivaceActivity
         //        timerHandler.postDelayed(, 500);
     };
 
-    private ValueAnimator _valueAnimator;
-    private int _scrollY;
-    private int _oldScrollY;
-
     private final View.OnScrollChangeListener _scrollChangeListener = new View.OnScrollChangeListener() {
         /** {@inheritDoc} */
         @Override
         public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-            _scrollY = scrollY;
-            _oldScrollY = oldScrollY;
-//            Log.d(APPLICATION_TAG, "new scroll = " + _scrollY + "; old scroll = " + _oldScrollY);
-            if (_scrollY > _oldScrollY && _scrollY - _oldScrollY <= 150) {
-//                _valueAnimator.setIntValues(255, 0);
+            if (scrollY > oldScrollY && scrollY - oldScrollY <= 150) {
                 getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
                 getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE |
                                                                  View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
                                                                  View.SYSTEM_UI_FLAG_FULLSCREEN);
-            } else if (_scrollY < _oldScrollY && _scrollY - _oldScrollY < 150) {
-//                _valueAnimator.setIntValues(0, 255);
+            } else if (scrollY < oldScrollY && scrollY - oldScrollY < 150) {
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
                 getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             }
-
-//            if (!_valueAnimator.isRunning()) {
-//                _valueAnimator.cancel();
-//            } else {
-//                _valueAnimator.start();
-//            }
         }
     };
 
@@ -424,7 +406,7 @@ public class MainActivity extends BaseVivaceActivity
             case R.id.action_share:
                 try {
                     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                    String temp_filename = sharedPreferences.getString(SettingsActivity.KEY_FILE_STORAGE_NAME, "vivace_temp_recording.xml");
+                    String temp_filename = sharedPreferences.getString(getString(R.string.settings_key_storage_filename), "vivace_temp_recording.xml");
 
                     FileStore fileStore = new FileStore(this);
                     if (_tempFile == null) {
@@ -486,50 +468,50 @@ public class MainActivity extends BaseVivaceActivity
     /** {@inheritDoc} */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults) {
-        ToolbarFragment toolbarFragment = (ToolbarFragment)getFragmentManager().findFragmentById(R.id.toolbarFragment);
-        Toolbar toolbar = (Toolbar)toolbarFragment.getView();
-
-        switch (requestCode) {
-            case VivacePermissionCodes.RECORD_AUDIO:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    _recordButton.setVisibility(View.VISIBLE);                 // permission granted
-                } else {
-                    _recordButton.setVisibility(View.INVISIBLE);                // permission denied
-                }
-
-                break;
-            case VivacePermissionCodes.INTERNET:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    _scoreUI.setVisibility(View.VISIBLE);                      // permission granted
-                } else {
-                    _scoreUI.setVisibility(View.INVISIBLE);                     // permission denied
-                }
-
-                break;
-            case VivacePermissionCodes.READ_EXTERNAL_STORAGE:
-                assert toolbar != null;
-
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    toolbar.getMenu().findItem(R.id.action_share).setVisible(true);     // permission granted
-                } else {
-                    toolbar.getMenu().findItem(R.id.action_share).setVisible(false);    // permission denied
-                }
-
-                break;
-            case VivacePermissionCodes.WRITE_EXTERNAL_STORAGE:
-                assert toolbar != null;
-
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    toolbar.getMenu().findItem(R.id.action_share).setVisible(true);     // permission granted
-                } else {
-                    toolbar.getMenu().findItem(R.id.action_share).setVisible(false);    // permission denied
-                }
-
-                break;
-            default:
-                Log.d(APPLICATION_TAG, "Got an unrecognized request code from asking for permissions: " + requestCode);
-                break;
-        }
+//        ToolbarFragment toolbarFragment = (ToolbarFragment)getFragmentManager().findFragmentById(R.id.toolbarFragment);
+//        Toolbar toolbar = (Toolbar)toolbarFragment.getView();
+//
+//        switch (requestCode) {
+//            case VivacePermissionCodes.RECORD_AUDIO:
+//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    _recordButton.setVisibility(View.VISIBLE);                 // permission granted
+//                } else {
+//                    _recordButton.setVisibility(View.INVISIBLE);                // permission denied
+//                }
+//
+//                break;
+//            case VivacePermissionCodes.INTERNET:
+//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    _scoreUI.setVisibility(View.VISIBLE);                      // permission granted
+//                } else {
+//                    _scoreUI.setVisibility(View.INVISIBLE);                     // permission denied
+//                }
+//
+//                break;
+//            case VivacePermissionCodes.READ_EXTERNAL_STORAGE:
+//                assert toolbar != null;
+//
+//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    toolbar.getMenu().findItem(R.id.action_share).setVisible(true);     // permission granted
+//                } else {
+//                    toolbar.getMenu().findItem(R.id.action_share).setVisible(false);    // permission denied
+//                }
+//
+//                break;
+//            case VivacePermissionCodes.WRITE_EXTERNAL_STORAGE:
+//                assert toolbar != null;
+//
+//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    toolbar.getMenu().findItem(R.id.action_share).setVisible(true);     // permission granted
+//                } else {
+//                    toolbar.getMenu().findItem(R.id.action_share).setVisible(false);    // permission denied
+//                }
+//
+//                break;
+//            default:
+//                Log.d(APPLICATION_TAG, "Got an unrecognized request code from asking for permissions: " + requestCode);
+//                break;
+//        }
     }
 
     /** {@inheritDoc} */

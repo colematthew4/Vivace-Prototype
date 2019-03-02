@@ -7,7 +7,7 @@
 	<include layout="@layout/app_bar_layout" />
 	<fragment
 		android:id="@+id/settingsFragment"
-		android:name="cole.matthew.vivace.Activities.SettingsActivity$VivaceSettingsPreferenceFragment"
+		android:name="cole.matthew.vivace.Fragments.Settings.VivaceSettingsPreferenceFragment"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
 </LinearLayout>

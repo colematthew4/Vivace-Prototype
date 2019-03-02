@@ -1,9 +1,10 @@
-package cole.matthew.vivace.Fragments;
+package cole.matthew.vivace.Fragments.Settings;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
+import android.graphics.drawable.Drawable;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -15,7 +16,7 @@ import cole.matthew.vivace.Models.Exceptions.NegativeNumberException;
 import cole.matthew.vivace.R;
 
 public final class TempoPickerPreference extends DialogPreference {
-    private final String TAG = "TempoPickerPreference";
+    private final String LOG_TAG = this.getClass().getName();
     private int _tempo;
     private int _maxTempo;
     private int _minTempo;
@@ -75,9 +76,9 @@ public final class TempoPickerPreference extends DialogPreference {
     private void setDefaults(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
             throws NegativeNumberException, InvalidTempoException
     {
-        setDialogLayoutResource(R.layout.tempo_picker);
-        setDialogIcon(R.drawable.ic_tempo_marker);
-        setDialogTitle("Pick the Tempo");
+        super.setDialogLayoutResource(R.layout.tempo_picker);
+        super.setDialogIcon(R.drawable.ic_tempo_marker);
+        super.setDialogTitle("Pick the Tempo");
 
         final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.TempoPickerPreference, defStyleAttr, defStyleRes);
         try {
@@ -110,7 +111,7 @@ public final class TempoPickerPreference extends DialogPreference {
     {
         if (tempo < 0) {
             throw new NegativeNumberException(tempo);
-        } else if (tempo < _minTempo) {
+        } else if (tempo < getMinTempo()) {
             throw new InvalidTempoException(tempo);
         }
 
@@ -140,7 +141,7 @@ public final class TempoPickerPreference extends DialogPreference {
     {
         if (tempo < 0) {
             throw new NegativeNumberException(tempo);
-        } else if (tempo > _maxTempo) {
+        } else if (tempo > getMaxTempo()) {
             throw new InvalidTempoException(tempo);
         }
 
@@ -167,12 +168,12 @@ public final class TempoPickerPreference extends DialogPreference {
     public void setTempo(int tempo)
             throws InvalidTempoException
     {
-        if (tempo < _minTempo || tempo > _maxTempo) {
+        if (tempo < getMinTempo() || tempo > getMaxTempo()) {
             throw new InvalidTempoException(tempo);
         }
 
         _tempo = tempo;
-        setSummary(_tempo + " BPM");
+        super.setSummary(_tempo + " BPM");
         persistData(_tempo);
     }
 
@@ -191,9 +192,9 @@ public final class TempoPickerPreference extends DialogPreference {
     protected View onCreateDialogView() {
         View view = super.onCreateDialogView();
         _tempoPicker = view.findViewById(R.id.tempoPicker);
-        _tempoPicker.setMaxValue(_maxTempo);
-        _tempoPicker.setMinValue(_minTempo);
-        _tempoPicker.setValue(_tempo);
+        _tempoPicker.setMaxValue(getMaxTempo());
+        _tempoPicker.setMinValue(getMinTempo());
+        _tempoPicker.setValue(getTempo());
 
         return view;
     }
@@ -207,7 +208,7 @@ public final class TempoPickerPreference extends DialogPreference {
                 try {
                     setTempo(_tempoPicker.getValue());
                 } catch (InvalidTempoException e) {
-                    Log.e(TAG, "Line " + e.getStackTrace()[0].getLineNumber() + " - " + e.getMessage());
+                    Log.e(LOG_TAG, "Line " + e.getStackTrace()[0].getLineNumber() + " - " + e.getMessage());
                     // TODO: show error message?
                 }
             }
@@ -226,7 +227,70 @@ public final class TempoPickerPreference extends DialogPreference {
         try {
             setTempo(restorePersistedValue ? getPersistedInt(_tempo) : defaultValue != null ? (int)defaultValue : 120);
         } catch (InvalidTempoException e) {
-            Log.e(TAG, "Line " + e.getStackTrace()[0].getLineNumber() + " - " + e.getMessage());
+            Log.e(LOG_TAG, "Line " + e.getStackTrace()[0].getLineNumber() + " - " + e.getMessage());
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     * @throws UnsupportedOperationException You cannot override the layout of the {@link TempoPickerPreference}.
+     */
+    @Override
+    public void setDialogLayoutResource(int dialogLayoutResId) {
+        throw new UnsupportedOperationException("You cannot override the layout of the TempoPickerPreference.");
+    }
+
+    /**
+     * {@inheritDoc}
+     * @throws UnsupportedOperationException You cannot override the icon of the {@link TempoPickerPreference}.
+     */
+    @Override
+    public void setDialogIcon(int dialogIconRes) {
+        throw new UnsupportedOperationException("You cannot override the icon of the TempoPickerPreference.");
+    }
+
+    /**
+     * {@inheritDoc}
+     * @throws UnsupportedOperationException You cannot override the icon of the {@link TempoPickerPreference}.
+     */
+    @Override
+    public void setDialogIcon(Drawable dialogIcon) {
+        throw new UnsupportedOperationException("You cannot override the icon of the TempoPickerPreference.");
+    }
+
+    /**
+     * {@inheritDoc}
+     * @throws UnsupportedOperationException You cannot override the title of the {@link TempoPickerPreference}.
+     */
+    @Override
+    public void setDialogTitle(int dialogTitleResId) {
+        throw new UnsupportedOperationException("You cannot override the title of the TempoPickerPreference.");
+    }
+
+    /**
+     * {@inheritDoc}
+     * @throws UnsupportedOperationException You cannot override the title of the {@link TempoPickerPreference}.
+     */
+    @Override
+    public void setDialogTitle(CharSequence dialogTitle) {
+        throw new UnsupportedOperationException("You cannot override the title of the TempoPickerPreference.");
+    }
+
+    /**
+     * {@inheritDoc}
+     * @throws UnsupportedOperationException You cannot override the title of the {@link TempoPickerPreference}.
+     */
+    @Override
+    public void setSummary(int summaryResId) {
+        throw new UnsupportedOperationException("You cannot override the title of the TempoPickerPreference.");
+    }
+
+    /**
+     * {@inheritDoc}
+     * @throws UnsupportedOperationException You cannot override the title of the {@link TempoPickerPreference}.
+     */
+    @Override
+    public void setSummary(CharSequence summary) {
+        throw new UnsupportedOperationException("You cannot override the title of the TempoPickerPreference.");
     }
 }

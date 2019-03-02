@@ -164,4 +164,11 @@
     <string name="title_activity_open_source_software_list">Third-party Software</string>
 	<string name="no_recordings_found_alert">No recordings found</string>
 	<string name="audio_settingsaction">Audio Settings</string>
+	<string name="settings_key_storage_filename">storage_filename_key</string>
+	<string name="settings_key_storage_filetype">storage_filetype_key</string>
+	<string name="settings_key_storage_directory">storage_directory_key</string>
+	<string name="settings_key_about_oss">about_oss_key</string>
+	<string name="settings_audio_time_sign">audio_time_sign_key</string>
+	<string name="settings_audio_tempo">audio_tempo_key</string>
+	<string name="settings_audio_instrument">audio_instrument_key</string>
 </resources>
