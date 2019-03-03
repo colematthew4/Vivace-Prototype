@@ -1,9 +1,7 @@
 package cole.matthew.vivace.Activities;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.support.v4.app.NavUtils;
@@ -13,10 +11,6 @@ import android.view.MenuItem;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
-import cole.matthew.vivace.Fragments.Settings.BaseVivacePreferenceFragment;
-import cole.matthew.vivace.Fragments.Settings.VivaceSettingsPreferenceFragment;
 import cole.matthew.vivace.Fragments.ToolbarFragment;
 import cole.matthew.vivace.R;
 
@@ -31,7 +25,7 @@ import cole.matthew.vivace.R;
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
  * API Guide</a> for more information on developing a Settings UI.
  */
-public final class SettingsActivity extends AppCompatPreferenceActivity implements IVivaceActivity {
+public final class SettingsActivity extends BaseVivaceActivity {
     /** {@inheritDoc} */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,29 +52,29 @@ public final class SettingsActivity extends AppCompatPreferenceActivity implemen
 
     /** {@inheritDoc} */
     @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         boolean result = true;
 
         switch (item.getItemId()) {
             case android.R.id.home:
-                if (!super.onMenuItemSelected(featureId, item)) {
+                if (!super.onOptionsItemSelected(item)) {
                     NavUtils.navigateUpFromSameTask(this);
                 }
 
                 break;
             default:
-                result = super.onMenuItemSelected(featureId, item);
+                result = super.onOptionsItemSelected(item);
                 break;
         }
 
         return result;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public boolean onIsMultiPane() {
-        return isXLargeTablet(this);
-    }
+//    /** {@inheritDoc} */
+//    @Override
+//    public boolean onIsMultiPane() {
+//        return isXLargeTablet(this);
+//    }
 
     /**
      * Helper method to determine if the device has an extra-large screen. For
@@ -90,18 +84,18 @@ public final class SettingsActivity extends AppCompatPreferenceActivity implemen
         return (context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public void onBuildHeaders(List<Header> target) {
-        loadHeadersFromResource(R.xml.pref_headers, target);
-    }
-
-    /**
-     * This method stops fragment injection in malicious applications.
-     * Make sure to deny any unknown fragments here.
-     */
-    protected boolean isValidFragment(String fragmentName) {
-        return BaseVivacePreferenceFragment.class.getName().equals(fragmentName) || VivaceSettingsPreferenceFragment.class.getName().equals(fragmentName);
-    }
+//    /** {@inheritDoc} */
+//    @Override
+//    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+//    public void onBuildHeaders(List<Header> target) {
+//        loadHeadersFromResource(R.xml.pref_headers, target);
+//    }
+//
+//    /**
+//     * This method stops fragment injection in malicious applications.
+//     * Make sure to deny any unknown fragments here.
+//     */
+//    protected boolean isValidFragment(String fragmentName) {
+//        return BaseVivacePreferenceFragment.class.getName().equals(fragmentName) || VivaceSettingsPreferenceFragment.class.getName().equals(fragmentName);
+//    }
 }

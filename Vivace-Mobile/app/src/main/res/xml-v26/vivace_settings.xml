@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory android:title="Storage">
+		<EditTextPreference
+			android:defaultValue="@string/pref_default_file_name"
+			android:inputType="textCapWords"
+			android:key="@string/settings_key_storage_filename"
+			android:maxLines="1"
+			android:selectAllOnFocus="true"
+			android:singleLine="true"
+			android:title="@string/pref_title_file_name"
+			android:icon="@android:drawable/ic_menu_edit" />
+		<ListPreference
+			android:defaultValue="-1"
+			android:entries="@array/pref_file_types"
+			android:entryValues="@array/pref_file_type_values"
+			android:key="@string/settings_key_storage_filetype"
+			android:negativeButtonText="@null"
+			android:positiveButtonText="@null"
+			android:title="@string/pref_title_file_type"
+			android:icon="@drawable/ic_music_file_black_24dp" />
+		<SwitchPreference
+			android:defaultValue="false"
+			android:key="@string/settings_key_storage_directory"
+			android:summary="@string/persist_recordings_summary"
+			android:title="@string/persist_recordings_title"
+			android:icon="@drawable/ic_storage_black_24dp" />
+	</PreferenceCategory>
+	<PreferenceCategory android:title="About">
+		<Preference
+			android:key="@string/settings_key_about_oss"
+			android:summary="Software that helped build Vivace"
+			android:title="Third Party Software"
+			android:iconSpaceReserved="false" />
+	</PreferenceCategory>
+</PreferenceScreen>

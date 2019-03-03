@@ -23,8 +23,26 @@ public final class VivaceSettingsPreferenceFragment extends BaseVivacePreference
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
+        bindPreferenceKeys();
+    }
 
+    /** {@inheritDoc} */
+    @Override
+    public void onCreatePreferences(Bundle bundle, String s) {
+        setPreferencesFromResource(R.xml.vivace_settings, s);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        bindPreferenceSummaryToValue();
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
+
+    /**
+     * Binds the keys associated with the settings in this {@link android.support.v14.preference.PreferenceFragment}.
+     */
+    private void bindPreferenceKeys() {
         KEY_STORAGE_FILENAME = _resources.getString(R.string.settings_key_storage_filename);
         KEY_STORAGE_FILETYPE = _resources.getString(R.string.settings_key_storage_filetype);
         KEY_STORAGE_DIRECTORY = _resources.getString(R.string.settings_key_storage_directory);
@@ -32,18 +50,9 @@ public final class VivaceSettingsPreferenceFragment extends BaseVivacePreference
     }
 
     /**
-     * {@inheritDoc}
-     * Binds the keys associated with the settings in this {@link android.support.v7.preference.PreferenceFragmentCompat}.
+     * Bind the summaries of preferences to their values. When their values change, their summaries are updated to reflect the new value, per the Android Design guidelines.
      */
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater, container, savedInstanceState);
-        addPreferencesFromResource(R.xml.pref_settings);
-
-        // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-        // to their values. When their values change, their summaries are
-        // updated to reflect the new value, per the Android Design
-        // guidelines.
+    private void bindPreferenceSummaryToValue() {
         bindPreferenceSummaryToValue(findPreference(KEY_STORAGE_FILENAME));
         bindPreferenceSummaryToValue(findPreference(KEY_STORAGE_FILETYPE));
         findPreference(KEY_STORAGE_DIRECTORY).setOnPreferenceChangeListener(STORAGE_DIRECTORY_SWITCH_PREFERENCE_LISTENER);
@@ -51,6 +60,5 @@ public final class VivaceSettingsPreferenceFragment extends BaseVivacePreference
             startActivity(new Intent(getActivity(), OpenSourceSoftwareListActivity.class));
             return true;
         });
-        return view;
     }
 }

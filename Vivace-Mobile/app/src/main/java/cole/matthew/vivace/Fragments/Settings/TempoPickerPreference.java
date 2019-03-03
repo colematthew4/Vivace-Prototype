@@ -1,15 +1,11 @@
 package cole.matthew.vivace.Fragments.Settings;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
-import android.preference.DialogPreference;
+import android.support.v7.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.View;
-import android.widget.NumberPicker;
 
 import cole.matthew.vivace.Models.Exceptions.InvalidTempoException;
 import cole.matthew.vivace.Models.Exceptions.NegativeNumberException;
@@ -20,7 +16,7 @@ public final class TempoPickerPreference extends DialogPreference {
     private int _tempo;
     private int _maxTempo;
     private int _minTempo;
-    private NumberPicker _tempoPicker;
+    private OnPreferenceChangeListener _onPreferenceChangeListener = (preference, newValue) -> getTempo() != (int)newValue;
 
     public TempoPickerPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
             throws NegativeNumberException, InvalidTempoException
@@ -79,6 +75,7 @@ public final class TempoPickerPreference extends DialogPreference {
         super.setDialogLayoutResource(R.layout.tempo_picker);
         super.setDialogIcon(R.drawable.ic_tempo_marker);
         super.setDialogTitle("Pick the Tempo");
+        setOnPreferenceChangeListener(_onPreferenceChangeListener);
 
         final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.TempoPickerPreference, defStyleAttr, defStyleRes);
         try {
@@ -189,43 +186,15 @@ public final class TempoPickerPreference extends DialogPreference {
 
     /** {@inheritDoc} */
     @Override
-    protected View onCreateDialogView() {
-        View view = super.onCreateDialogView();
-        _tempoPicker = view.findViewById(R.id.tempoPicker);
-        _tempoPicker.setMaxValue(getMaxTempo());
-        _tempoPicker.setMinValue(getMinTempo());
-        _tempoPicker.setValue(getTempo());
-
-        return view;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
-        super.onPrepareDialogBuilder(builder);
-        builder.setPositiveButton("Select", (dialog, which) -> {
-            if (which == DialogInterface.BUTTON_POSITIVE) {
-                try {
-                    setTempo(_tempoPicker.getValue());
-                } catch (InvalidTempoException e) {
-                    Log.e(LOG_TAG, "Line " + e.getStackTrace()[0].getLineNumber() + " - " + e.getMessage());
-                    // TODO: show error message?
-                }
-            }
-        });
-    }
-
-    /** {@inheritDoc} */
-    @Override
     protected Object onGetDefaultValue(TypedArray a, int index) {
         return a.getInteger(index, 120);
     }
 
     /** {@inheritDoc} */
     @Override
-    protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
+    protected void onSetInitialValue(Object defaultValue) {
         try {
-            setTempo(restorePersistedValue ? getPersistedInt(_tempo) : defaultValue != null ? (int)defaultValue : 120);
+            setTempo(defaultValue == null ? getPersistedInt(_tempo) : (int)defaultValue);
         } catch (InvalidTempoException e) {
             Log.e(LOG_TAG, "Line " + e.getStackTrace()[0].getLineNumber() + " - " + e.getMessage());
         }

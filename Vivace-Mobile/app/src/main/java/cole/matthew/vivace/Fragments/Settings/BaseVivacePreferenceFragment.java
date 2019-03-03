@@ -1,14 +1,15 @@
 package cole.matthew.vivace.Fragments.Settings;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
-import android.preference.SwitchPreference;
+import android.support.v14.preference.PreferenceDialogFragment;
+import android.support.v14.preference.PreferenceFragment;
+import android.support.v14.preference.SwitchPreference;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.preference.ListPreference;
+import android.support.v7.preference.Preference;
+import android.support.v7.preference.PreferenceManager;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,8 +47,7 @@ public abstract class BaseVivacePreferenceFragment extends PreferenceFragment {
 
                 // Set the summary to reflect the new value.
                 preference.setSummary(index >= 0 ? listPreference.getEntries()[index] : null);
-            }
-            else if (!(preference instanceof SwitchPreference)) {
+            } else if (!(preference instanceof SwitchPreference)) {
                 // For all other preferences, set the summary to the value's
                 // simple string representation.
                 preference.setSummary(stringValue);
@@ -106,6 +106,18 @@ public abstract class BaseVivacePreferenceFragment extends PreferenceFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         _resources = getResources();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void onDisplayPreferenceDialog(Preference preference) {
+        if (preference instanceof TempoPickerPreference) {
+            PreferenceDialogFragment fragment = TempoPickerDialogPreferenceFragment.newInstance(preference.getKey());
+            fragment.setTargetFragment(this, 0);
+            fragment.show(getFragmentManager(), null);
+        } else {
+            super.onDisplayPreferenceDialog(preference);
+        }
     }
 
     /**
