@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/oss_banner"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:paddingStart="16dp"
+	android:paddingEnd="16dp"
+	android:gravity="center_vertical"
+	android:orientation="horizontal"
+	android:clickable="true"
+	android:focusable="true">
+	<TextView
+		android:id="@+id/oss_name"
+		android:layout_weight="1"
+		android:layout_width="0dp"
+		android:layout_height="48dp"
+		android:gravity="center_vertical"
+		android:textColor="@android:color/black"
+		android:textSize="16sp" />
+</LinearLayout>
