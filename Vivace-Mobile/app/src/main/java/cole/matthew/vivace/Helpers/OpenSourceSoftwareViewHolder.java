@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import cole.matthew.vivace.Models.OpenSourceSoftwareContent.OpenSourceSoftware;
+import cole.matthew.vivace.Models.OpenSourceSoftware;
 import cole.matthew.vivace.R;
 
 public abstract class OpenSourceSoftwareViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {

@@ -6,7 +6,7 @@ import android.view.View;
 
 import org.jetbrains.annotations.NotNull;
 
-import cole.matthew.vivace.Models.OpenSourceSoftwareContent.OpenSourceSoftware;
+import cole.matthew.vivace.Models.OpenSourceSoftware;
 import cole.matthew.vivace.R;
 
 public class LargeOpenSourceSoftwareViewHolder extends OpenSourceSoftwareViewHolder {

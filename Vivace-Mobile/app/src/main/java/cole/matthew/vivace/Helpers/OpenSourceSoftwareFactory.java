@@ -1,4 +1,4 @@
-package cole.matthew.vivace.Models;
+package cole.matthew.vivace.Helpers;
 
 import android.content.Context;
 import android.content.res.XmlResourceParser;
@@ -14,29 +14,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import cole.matthew.vivace.Models.OpenSourceSoftware;
 import cole.matthew.vivace.R;
 
 /**
- * Helper class for providing the open source libraries used to build Vivace.
+ * Helper factory for providing the open source libraries used to build Vivace.
  */
-public final class OpenSourceSoftwareContent {
+public final class OpenSourceSoftwareFactory {
+    private Context _context;
+    private Map<String, String> _softwareLicenseCache;
     private List<OpenSourceSoftware> _openSourceSoftware;
 
     /**
-     * Creates an instance of a {@link OpenSourceSoftwareContent} object.
+     * Creates an instance of a {@link OpenSourceSoftwareFactory} object.
      *
-     * @param context The context to attach the display to.
-     *
-     * @exception IOException
-     * @exception XmlPullParserException
+     * @param context The context to get the xml resources from.
      */
-    public OpenSourceSoftwareContent(Context context)
-            throws IOException, XmlPullParserException
-    {
+    public OpenSourceSoftwareFactory(Context context) {
+        _context = context;
+        _softwareLicenseCache = new HashMap<>();
         _openSourceSoftware = new ArrayList<>();
-        loadSoftwareFromResource(context);
     }
 
     /**
@@ -45,21 +46,29 @@ public final class OpenSourceSoftwareContent {
      * @return A {@link List} of {@link OpenSourceSoftware}.
      */
     public List<OpenSourceSoftware> getOpenSourceSoftware() {
+        if (_openSourceSoftware.isEmpty()) {
+            try {
+                loadSoftwareFromResource();
+            } catch (IOException | XmlPullParserException e) {
+                // TODO: Implement logging and exception handling
+                Log.e(this.getClass().getName(), e.getMessage());
+            }
+        }
+
         return _openSourceSoftware;
     }
 
     /**
      * Parses the third party libraries used by Vivace from an xml resource file.
      *
-     * @param context Context to get the xml resource from.
-     *
-     * @exception IOException
-     * @exception XmlPullParserException
+     * @throws IOException
+     * @throws XmlPullParserException
+     * @throws IllegalArgumentException
      */
-    private void loadSoftwareFromResource(Context context)
-            throws IOException, XmlPullParserException
+    private void loadSoftwareFromResource()
+            throws IOException, XmlPullParserException, IllegalArgumentException
     {
-        try (XmlResourceParser xmlParser = context.getResources().getXml(R.xml.oss)) {
+        try (XmlResourceParser xmlParser = _context.getResources().getXml(R.xml.oss)) {
             int xmlTagType;
             while ((xmlTagType = xmlParser.next()) != XmlResourceParser.END_DOCUMENT && xmlTagType != XmlResourceParser.START_TAG) {
                 // parse until start tag is found
@@ -102,14 +111,7 @@ public final class OpenSourceSoftwareContent {
                                     }
 
                                     String licenseName = xmlParser.getText();
-                                    Parser mdParser = Parser.builder().build();
-                                    HtmlRenderer mdRenderer = HtmlRenderer.builder().build();
-                                    try (InputStream licenseStream = context.getAssets()
-                                                                            .open("Licenses/" + licenseName + ".md"); InputStreamReader licenseReader = new InputStreamReader(
-                                            licenseStream); BufferedReader reader = new BufferedReader(licenseReader)) {
-                                        Node licenseDocument = mdParser.parseReader(reader);
-                                        license = mdRenderer.render(licenseDocument);
-                                    }
+                                    license = getSoftwareLicense(licenseName);
                                 } else {
                                     skipCurrentTag(xmlParser);
                                 }
@@ -134,8 +136,8 @@ public final class OpenSourceSoftwareContent {
      *
      * @param parser the parser to skip forward in.
      *
-     * @exception IOException
-     * @exception XmlPullParserException
+     * @throws IOException
+     * @throws XmlPullParserException
      */
     private void skipCurrentTag(XmlResourceParser parser)
             throws IOException, XmlPullParserException
@@ -149,63 +151,49 @@ public final class OpenSourceSoftwareContent {
     }
 
     /**
-     * An object representing a third party library used by Vivace.
+     * Gets the license content for the given license.
+     *
+     * @param licenseName The name of the license to retrieve.
+     * @return The license as an HTML document.
+     * @throws IOException When the license doesn't exist as an asset in the application.
+     * @throws IllegalArgumentException When the license name is null or empty.
      */
-    public static class OpenSourceSoftware {
-        private final String _name;
-        private final String _url;
-        private final String _license;
+    private String getSoftwareLicense(String licenseName)
+            throws IOException, IllegalArgumentException
+    {
+        if (licenseName == null || licenseName.equals("")) {
+            throw new IllegalArgumentException("The license cannot be null or empty.");
+        }
 
-        /**
-         * Creates an instance of a {@link OpenSourceSoftware} object.
-         *
-         * @param name    The name of the library.
-         * @param url     The url where the library is hosted.
-         * @param license The license the library is issued under.
-         *
-         * @exception IllegalArgumentException When the name, url or license is null or empty.
-         */
-        OpenSourceSoftware(String name, String url, String license)
-                throws IllegalArgumentException
+        String renderedLicense = _softwareLicenseCache.get(licenseName);
+
+        if (renderedLicense == null || renderedLicense.equals("")) {
+            renderedLicense = getRenderedLicense(licenseName);
+            _softwareLicenseCache.put(licenseName, renderedLicense);
+        }
+
+        return renderedLicense;
+    }
+
+    /**
+     * Retrieves the content of the license and renders it as HTML.
+     *
+     * @param licenseName The name of the license to render.
+     *
+     * @return An HTML document as a string.
+     * @throws IOException When the license doesn't exist as an asset in the application.
+     */
+    private String getRenderedLicense(String licenseName)
+            throws IOException
+    {
+        Parser parser = Parser.builder().build();
+        HtmlRenderer htmlRenderer = HtmlRenderer.builder().build();
+        try (InputStream licenseStream = _context.getAssets().open("Licenses/" + licenseName + ".md");
+             InputStreamReader licenseStreamReader = new InputStreamReader(licenseStream);
+             BufferedReader licenseReader = new BufferedReader(licenseStreamReader))
         {
-            if (name == null || name.equals("")) {
-                throw new IllegalArgumentException("Third party libraries have a name, but one was not provided.");
-            } else if (url == null || url.equals("")) {
-                throw new IllegalArgumentException("Third party libraries are hosted somewhere, but a url was not provided.");
-            } else if (license == null || license.equals("")) {
-                throw new IllegalArgumentException("Third party libraries have some kind of license, but one was not provided.");
-            }
-
-            _name = name;
-            _url = url;
-            _license = license;
-        }
-
-        /**
-         * Gets the name of the third party library.
-         *
-         * @return The name of the library.
-         */
-        public String getName() {
-            return _name;
-        }
-
-        /**
-         * Gets the url where the third party library is hosted.
-         *
-         * @return The url where the library is hosted.
-         */
-        public String getUrl() {
-            return _url;
-        }
-
-        /**
-         * Gets the name of the license the third party library utilizes.
-         *
-         * @return The name of the license.
-         */
-        public String getLicense() {
-            return _license;
+            Node licenseDocument = parser.parseReader(licenseReader);
+            return htmlRenderer.render(licenseDocument);
         }
     }
 }

@@ -12,7 +12,7 @@ import android.widget.LinearLayout;
 
 import org.jetbrains.annotations.NotNull;
 
-import cole.matthew.vivace.Models.OpenSourceSoftwareContent;
+import cole.matthew.vivace.Models.OpenSourceSoftware;
 import cole.matthew.vivace.R;
 
 public class SmallOpenSourceSoftwareViewHolder extends OpenSourceSoftwareViewHolder {
@@ -49,7 +49,7 @@ public class SmallOpenSourceSoftwareViewHolder extends OpenSourceSoftwareViewHol
 
     /** {@inheritDoc} */
     @Override
-    public void setSoftware(@NotNull OpenSourceSoftwareContent.OpenSourceSoftware software) {
+    public void setSoftware(@NotNull OpenSourceSoftware software) {
         _nameTextView.setText(software.getName());
 
         String htmlUrl = "<a href=\"" + software.getUrl() + "\">" + software.getUrl() + "</a>";

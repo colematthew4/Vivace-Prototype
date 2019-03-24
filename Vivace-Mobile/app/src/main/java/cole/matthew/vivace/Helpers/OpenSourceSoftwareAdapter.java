@@ -9,34 +9,25 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import cole.matthew.vivace.Models.OpenSourceSoftwareContent.OpenSourceSoftware;
+import cole.matthew.vivace.Models.OpenSourceSoftware;
 import cole.matthew.vivace.R;
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link OpenSourceSoftware}.
  */
-public class OpenSourceSoftwareRecyclerViewAdapter extends RecyclerView.Adapter<OpenSourceSoftwareViewHolder> {
+public class OpenSourceSoftwareAdapter extends RecyclerView.Adapter<OpenSourceSoftwareViewHolder> {
     private final OpenSourceSoftwareViewHolderFactory _adapterFactory = new OpenSourceSoftwareViewHolderFactory();
     private final List<OpenSourceSoftware> _oss;
     private View _detailsView;
     private int _selectedItem = -1;
 
     /**
-     * Creates an instance of an {@link OpenSourceSoftwareRecyclerViewAdapter} with the given contents.
-     *
-     * @param oss The {@link OpenSourceSoftware} to insert into the {@link RecyclerView}.
-     */
-    public OpenSourceSoftwareRecyclerViewAdapter(@NotNull List<OpenSourceSoftware> oss) {
-        this(oss, null);
-    }
-
-    /**
-     * Creates an instance of an {@link OpenSourceSoftwareRecyclerViewAdapter} with the given contents.
+     * Creates an instance of an {@link OpenSourceSoftwareAdapter} with the given contents.
      *
      * @param oss The {@link OpenSourceSoftware} to insert into the {@link RecyclerView}.
      * @param detailsView A view that some adapters use for attaching content when items are selected. Can be {@code null}.
      */
-    public OpenSourceSoftwareRecyclerViewAdapter(@NotNull List<OpenSourceSoftware> oss, View detailsView) {
+    public OpenSourceSoftwareAdapter(@NotNull List<OpenSourceSoftware> oss, View detailsView) {
         _oss = oss;
         _detailsView = detailsView;
     }
