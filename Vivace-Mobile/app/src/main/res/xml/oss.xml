@@ -15,4 +15,9 @@
 		<url>https://github.com/atlassian/commonmark-java</url>
 		<license>BSD 2-Clause Simplified License</license>
 	</item>
+	<item>
+		<name>LeakCanary</name>
+		<url>https://github.com/square/leakcanary</url>
+		<license>Apache License v2.0</license>
+	</item>
 </oss>
